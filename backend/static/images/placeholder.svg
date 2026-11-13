@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6e6"/><stop offset="1" stop-color="#ffd9a0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="480" fill="url(#g)"/>
+  <circle cx="200" cy="210" r="96" fill="none" stroke="#e85d04" stroke-width="3" opacity=".35"/>
+  <text x="200" y="250" text-anchor="middle" font-family="serif" font-size="120" fill="#e85d04" opacity=".85">ॐ</text>
+  <text x="200" y="395" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#8f1d14">Gajanan Kala Kendra</text>
+  <text x="200" y="424" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#766b65">Photo coming soon</text>
+</svg>

@@ -1,0 +1,27 @@
+backend/ganpati.db
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+# photos uploaded by the admin (keep the folder itself)
+backend/static/images/uploads/*
+!backend/static/images/uploads/.gitkeep
+backend/reset_links.log
+backend/sent_emails.log
+.env
+
+
+
+
+
+
+
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.db
+instance/

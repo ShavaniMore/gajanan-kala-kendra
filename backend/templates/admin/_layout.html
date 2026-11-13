@@ -1,0 +1,96 @@
+{% from "_macros.html" import flashes, status_badge %}
+{% from "_tools.html" import theme_btn, lang_select %}
+{% macro nav_link(endpoints, target, icon, label, badge=0, badge_class='') %}
+    <a class="ad-link {{ 'active' if request.endpoint in endpoints }}" href="{{ url_for(target) }}">
+        <i class="bi {{ icon }}"></i><span>{{ label }}</span>
+        {% if badge %}<em class="ad-badge {{ badge_class }}">{{ badge }}</em>{% endif %}
+    </a>
+{% endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | Gajanan Kala Kendra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    {% include "_head_common.html" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="ad-body">
+<div class="ad-shell">
+
+    <aside class="ad-side" id="adSide">
+        <a class="ad-brand" href="{{ url_for('admin.dashboard') }}">
+            <img class="brand-logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Gajanan Kala Kendra logo">
+            <span>Gajanan Kala <b>Kendra</b><small>Admin Panel</small></span>
+        </a>
+
+        <nav class="ad-nav">
+            {{ nav_link(['admin.dashboard'], 'admin.dashboard', 'bi-speedometer2', 'Dashboard') }}
+
+            <div class="ad-group">Shop</div>
+            {{ nav_link(['admin.products', 'admin.product_new', 'admin.product_edit'], 'admin.products', 'bi-bag-heart', 'Products') }}
+            {{ nav_link(['admin.stock'], 'admin.stock', 'bi-boxes', 'Stock', nav_low_stock, 'warn') }}
+            {{ nav_link(['admin.restock'], 'admin.restock', 'bi-bell', 'Restock Alerts', nav_alerts) }}
+
+            <div class="ad-group">Orders</div>
+            {{ nav_link(['admin.bookings', 'admin.booking_detail'], 'admin.bookings', 'bi-calendar-check', 'Bookings', nav_new_orders) }}
+            {{ nav_link(['admin.payments'], 'admin.payments', 'bi-wallet2', 'Payments') }}
+
+            <div class="ad-group">People</div>
+            {{ nav_link(['admin.customers', 'admin.customer_detail', 'admin.customer_edit'], 'admin.customers', 'bi-people', 'Customers') }}
+            {{ nav_link(['admin.reviews'], 'admin.reviews', 'bi-chat-square-heart', 'Reviews') }}
+
+            <div class="ad-group">Insights</div>
+            {{ nav_link(['admin.reports'], 'admin.reports', 'bi-graph-up-arrow', 'Reports') }}
+
+            <div class="ad-group">Branches</div>
+            {{ nav_link(['admin.branches', 'admin.branch_new', 'admin.branch_edit'], 'admin.branches', 'bi-shop-window', 'Branches') }}
+            {{ nav_link(['admin.branch_stock'], 'admin.branch_stock', 'bi-box-seam', 'Branch Stock') }}
+            {{ nav_link(['admin.branch_sales'], 'admin.branch_sales', 'bi-bar-chart-line', 'Branch Sales') }}
+
+            <div class="ad-group">Account</div>
+            {{ nav_link(['admin.profile'], 'admin.profile', 'bi-shield-lock', 'My Profile') }}
+        </nav>
+
+        <div class="ad-side-foot">
+            <a href="{{ url_for('home') }}"><i class="bi bi-box-arrow-up-right"></i> View live shop</a>
+        </div>
+    </aside>
+    <div class="ad-scrim" id="adScrim"></div>
+
+    <div class="ad-main">
+        <header class="ad-top">
+            <button class="ad-menu" id="adMenu" aria-label="Open menu"><i class="bi bi-list"></i></button>
+            <div class="ad-title">
+                <small>{% block crumb %}Admin{% endblock %}</small>
+                <h1>{% block heading %}Dashboard{% endblock %}</h1>
+            </div>
+            <div class="ad-top-right">
+                {{ lang_select() }}
+                {{ theme_btn() }}
+                <a class="secondary-btn btn-sm" href="{{ url_for('catalogue') }}"><i class="bi bi-shop"></i> <span>Visit Store</span></a>
+                <span class="ad-user"><i class="bi bi-person-circle"></i> {{ session.get('username') }}</span>
+                <a class="primary-btn btn-sm" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> <span>Logout</span></a>
+            </div>
+        </header>
+
+        <div class="flash-wrap">{{ flashes() }}</div>
+
+        <main class="ad-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

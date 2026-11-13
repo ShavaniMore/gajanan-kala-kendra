@@ -1,0 +1,34 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Branch Sales{% endblock %}
+{% block crumb %}Branches{% endblock %}
+{% block heading %}Branch-wise Sales{% endblock %}
+
+{% block content %}
+<div class="ad-card">
+    <div class="ad-card-head"><h3><i class="bi bi-bar-chart-line"></i> Sales by branch</h3>
+        <a class="btn-ghost" href="{{ url_for('admin.branches') }}"><i class="bi bi-shop-window"></i> Manage branches</a></div>
+    <div class="ad-card-body bars">
+        {% for r in rows %}
+        <div class="bar-row" style="grid-template-columns:170px minmax(0,1fr) 110px">
+            <span class="lbl">{{ r['branch_name'] }}</span>
+            <span class="track"><span class="fill red" style="width:{{ (r['total_sales'] | float * 100 / top) | round | int }}%;display:block"></span></span>
+            <span class="val">{{ r['total_sales'] | inr }}</span>
+        </div>
+        {% else %}<p class="muted">No branches yet.</p>{% endfor %}
+    </div>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Branch</th><th>City</th><th>Status</th><th class="num">Orders</th><th class="num">Total sales</th></tr></thead>
+            <tbody>
+            {% for r in rows %}
+            <tr><td><strong>{{ r['branch_name'] }}</strong></td><td>{{ r['city'] }}</td>
+                <td><span class="badge {{ 'green' if r['status'] == 'Active' else 'grey' }}">{{ r['status'] }}</span></td>
+                <td class="num">{{ r['total_orders'] }}</td><td class="num"><strong>{{ r['total_sales'] | inr }}</strong></td></tr>
+            {% endfor %}
+            <tr><td><em>No branch chosen</em></td><td>—</td><td>—</td><td class="num">{{ unassigned['c'] }}</td><td class="num"><strong>{{ unassigned['s'] | inr }}</strong></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pager-note">Cancelled bookings are not counted. Bookings made without choosing a branch appear in the last row.</div>
+</div>
+{% endblock %}

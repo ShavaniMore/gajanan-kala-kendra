@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars %}
+{% block title %}Devotee Reviews | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head">
+        <span class="section-tag">REVIEWS</span>
+        <h1>Devotee <span>Testimonials</span></h1>
+        <p>Read what our devotees say, and share your own experience with us.</p>
+    </div>
+
+    <div class="reviews-layout">
+        <div class="card-box review-form">
+            <h3>Share Your Devotion</h3>
+            <form action="{{ url_for('reviews') }}" method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <div class="field">
+                    <label for="customer_name">Your Name *</label>
+                    <input id="customer_name" type="text" name="customer_name" value="{{ session.get('username', '') }}" placeholder="Devotee name" required>
+                </div>
+                <div class="field">
+                    <label for="idol_id">Select Idol (optional)</label>
+                    <select id="idol_id" name="idol_id">
+                        <option value="">General shop feedback</option>
+                        {% for idol in idols %}<option value="{{ idol['id'] }}">{{ idol['name'] }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="rating">Star Rating *</label>
+                    <select id="rating" name="rating" required>
+                        <option value="5">★★★★★ (5/5) Divine &amp; Excellent</option>
+                        <option value="4">★★★★ (4/5) Very Good</option>
+                        <option value="3">★★★ (3/5) Good</option>
+                        <option value="2">★★ (2/5) Average</option>
+                        <option value="1">★ (1/5) Needs Improvement</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="comment">Your Experience *</label>
+                    <textarea id="comment" name="comment" rows="4" placeholder="Tell us about the idol finish, packaging or delivery..." required></textarea>
+                </div>
+                <button type="submit" class="primary-btn btn-block"><i class="bi bi-send"></i> Submit Review</button>
+            </form>
+        </div>
+
+        <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <h3 style="font-size:22px">What devotees say</h3>
+                <span class="badge dark">{{ reviews | length }} review{{ '' if reviews | length == 1 else 's' }}</span>
+            </div>
+            <div class="review-list">
+                {% for rev in reviews %}
+                <div class="review-card">
+                    <div class="who">
+                        <div class="avatar">{{ rev['customer_name'][:1] | upper }}</div>
+                        <div style="flex:1">
+                            <h4>{{ rev['customer_name'] }}</h4>
+                            {% if rev['idol_name'] %}<div class="for">Reviewed: <strong>{{ rev['idol_name'] }}</strong></div>{% endif %}
+                        </div>
+                        {{ stars(rev['rating']) }}
+                    </div>
+                    <p>{{ rev['comment'] }}</p>
+                    <time>{{ rev['created_at'] | fdate }}</time>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-chat-square-heart"></i>
+                    <h3>No reviews yet. Be the first devotee to share feedback!</h3>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

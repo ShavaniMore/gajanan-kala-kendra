@@ -1,0 +1,69 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Bookings{% endblock %}
+{% block crumb %}Orders{% endblock %}
+{% block heading %}Booking & Order Management{% endblock %}
+
+{% block content %}
+<div class="ad-card">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-calendar-check"></i> Bookings</h3>
+        <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='bookings', **{'from': date_from, 'to': date_to}) }}"><i class="bi bi-download"></i> Export CSV</a>
+    </div>
+
+    <div class="tabs">
+        {% for key, label in [('all','All orders'),('new','New'),('progress','In progress'),('completed','Completed'),('cancelled','Cancelled')] %}
+        <a class="{{ 'on' if tab == key }}" href="{{ url_for('admin.bookings', tab=key) }}">{{ label }} <b>{{ tab_counts.get(key, 0) }}</b></a>
+        {% endfor %}
+    </div>
+
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.bookings') }}">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Booking ID, customer, phone or item"></div>
+        <select name="payment" data-autosubmit>
+            <option value="">Any payment</option>
+            {% for p in payment_statuses %}<option value="{{ p }}" {{ 'selected' if p == payment }}>{{ p }}</option>{% endfor %}
+        </select>
+        <select name="delivery" data-autosubmit>
+            <option value="">Pickup &amp; delivery</option>
+            <option value="Store Pickup" {{ 'selected' if delivery == 'Store Pickup' }}>Store pickup</option>
+            <option value="Home Delivery" {{ 'selected' if delivery == 'Home Delivery' }}>Home delivery</option>
+        </select>
+        <label>From <input type="date" name="from" value="{{ date_from }}"></label>
+        <label>To <input type="date" name="to" value="{{ date_to }}"></label>
+        <button class="btn-ghost" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+        {% if q or payment or delivery or date_from or date_to %}<a class="btn-ghost" href="{{ url_for('admin.bookings', tab=tab) }}">Clear</a>{% endif %}
+    </form>
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Booking</th><th>Customer</th><th>Item</th><th class="num">Total</th><th>Event date &amp; mode</th><th>Payment</th><th>Status</th><th>Update status</th></tr></thead>
+            <tbody>
+            {% for b in rows %}
+            <tr>
+                <td><a href="{{ url_for('admin.booking_detail', booking_id=b['booking_id']) }}"><span class="badge grey">{{ b['booking_id'] }}</span></a><br><small>{{ b['created_at'] | fdate }}</small></td>
+                <td><strong>{{ b['customer_name'] }}</strong><br><small><i class="bi bi-telephone"></i> {{ b['contact_number'] }}</small></td>
+                <td>{{ b['idol_name'] }} <small>× {{ b['quantity'] }}</small>{% if b['branch_name'] %}<br><small><i class="bi bi-shop-window"></i> {{ b['branch_name'] }}</small>{% endif %}</td>
+                <td class="num"><strong style="color:var(--deep-red)">{{ b['total_price'] | inr }}</strong></td>
+                <td>{{ b['booking_date'] | fdate }}<br><small>{{ b['delivery_option'] }}</small></td>
+                <td><span class="badge {{ 'green' if b['payment_status'] == 'Paid in Full' else ('red' if b['payment_status'] == 'Refunded' else ('blue' if b['payment_status'].startswith('Advance') else 'amber')) }}">{{ b['payment_status'] }}</span></td>
+                <td>{{ status_badge(b['status']) }}</td>
+                <td>
+                    {% if b['status'] == 'Cancelled' %}<small class="muted">Closed</small>{% else %}
+                    <form class="mini-form" action="{{ url_for('admin.booking_status_update', booking_id=b['booking_id']) }}" method="POST">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                        <select name="status">{% for s in booking_statuses %}<option value="{{ s }}" {{ 'selected' if b['status'] == s }}>{{ s }}</option>{% endfor %}</select>
+                        <button type="submit" title="Save"><i class="bi bi-check-lg"></i></button>
+                    </form>{% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="8">No bookings found for this view.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if rows | length >= 500 %}<div class="pager-note">Showing the latest 500 bookings. Narrow the filters to see older ones.</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Customers{% endblock %}
+{% block crumb %}People{% endblock %}
+{% block heading %}Customers{% endblock %}
+
+{% block content %}
+<div class="ad-card">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-people"></i> Registered devotees <span class="badge grey">{{ customers | length }}</span></h3>
+        <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='customers') }}"><i class="bi bi-download"></i> Export CSV</a>
+    </div>
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.customers') }}">
+        <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Search name, email or phone"></div>
+        <button class="btn-ghost" type="submit"><i class="bi bi-search"></i> Search</button>
+        {% if q %}<a class="btn-ghost" href="{{ url_for('admin.customers') }}">Clear</a>{% endif %}
+    </form>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Customer</th><th>Phone</th><th>Joined</th><th class="num">Bookings</th><th class="num">Total spent</th><th>Account</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for c in customers %}
+            <tr>
+                <td><div class="thumb-cell" style="min-width:200px"><span class="avatar" style="width:38px;height:38px;font-size:15px">{{ c['username'][:1] | upper }}</span>
+                    <div><strong>{{ c['username'] }}</strong><small>{{ c['email'] }}</small></div></div></td>
+                <td>{{ c['phone'] or '—' }}</td>
+                <td>{{ c['created_at'] | fdate }}</td>
+                <td class="num"><strong>{{ c['booking_count'] }}</strong></td>
+                <td class="num"><strong>{{ c['spent'] | inr }}</strong></td>
+                <td>{% if c['is_active'] %}<span class="badge green">Active</span>{% else %}<span class="badge red">Deactivated</span>{% endif %}</td>
+                <td>
+                    <div class="row-actions">
+                        <a class="icon-btn" href="{{ url_for('admin.customer_detail', user_id=c['id']) }}" title="View"><i class="bi bi-eye"></i></a>
+                        <a class="icon-btn" href="{{ url_for('admin.customer_edit', user_id=c['id']) }}" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                        <form action="{{ url_for('admin.customer_toggle', user_id=c['id']) }}" method="POST" data-confirm="{{ 'Deactivate' if c['is_active'] else 'Re-activate' }} {{ c['username'] }}'s account?">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                            <button class="icon-btn" type="submit" title="{{ 'Deactivate' if c['is_active'] else 'Activate' }}"><i class="bi {{ 'bi-person-slash' if c['is_active'] else 'bi-person-check' }}"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="7">No customers found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

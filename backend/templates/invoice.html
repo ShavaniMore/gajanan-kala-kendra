@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ b['booking_id'] }} | Gajanan Kala Kendra</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* ===== INVOICE: looks the same on screen, on paper (A4) and when saved as PDF ===== */
+        @page { size: A4; margin: 14mm; }
+        html, body.inv-body { background: #fff !important; color: #251a17; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .inv-actions { max-width: 794px; margin: 18px auto 0; display: flex; gap: 10px; justify-content: flex-end; padding: 0 16px; }
+        .inv-sheet { max-width: 794px; margin: 16px auto 40px; padding: 34px 38px; border: 1px solid #eadfd3; border-radius: 12px; font: 14px/1.5 "DM Sans", Arial, sans-serif; background: #fff; }
+        .inv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 18px; border-bottom: 3px solid #8f1d14; }
+        .inv-brand { display: flex; gap: 14px; align-items: center; }
+        .inv-brand img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px #d4a72c; }
+        .inv-brand h1 { font: 700 24px "Playfair Display", Georgia, serif; color: #8f1d14; margin: 0 0 4px; }
+        .inv-brand p { margin: 0; color: #5d524c; font-size: 12.5px; line-height: 1.55; }
+        .inv-title { text-align: right; }
+        .inv-title .word { font: 700 30px "Playfair Display", Georgia, serif; color: #8f1d14; letter-spacing: 3px; line-height: 1; }
+        .inv-title table { margin-top: 10px; margin-left: auto; border-collapse: collapse; font-size: 12.5px; }
+        .inv-title td { padding: 2px 0 2px 14px; }
+        .inv-title td:first-child { color: #766b65; }
+        .inv-info { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 22px 0 6px; }
+        .inv-box { border: 1px solid #eadfd3; border-radius: 10px; padding: 12px 15px; background: #fdf9f2; }
+        .inv-box h4 { margin: 0 0 6px; font: 700 11px "DM Sans", Arial, sans-serif; letter-spacing: 1.6px; text-transform: uppercase; color: #e85d04; }
+        .inv-box p { margin: 0; font-size: 13.5px; }
+        .inv-sheet table.inv-items { width: 100%; border-collapse: collapse; margin: 20px 0 14px; }
+        .inv-items th { background: #8f1d14; color: #fff; text-align: left; padding: 10px 12px; font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; }
+        .inv-items td { padding: 13px 12px; border-bottom: 1px solid #eadfd3; vertical-align: top; }
+        .inv-items .r { text-align: right; }
+        .inv-items small { color: #766b65; }
+        .inv-bottom { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; align-items: start; }
+        .inv-pay { font-size: 12.5px; color: #5d524c; }
+        .inv-pay div { padding: 2px 0; }
+        .inv-pay b { color: #251a17; }
+        .inv-sums { border: 1px solid #eadfd3; border-radius: 10px; overflow: hidden; }
+        .inv-sums div { display: flex; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #eadfd3; }
+        .inv-sums div:last-child { border-bottom: 0; background: #8f1d14; color: #fff; font-weight: 700; font-size: 16px; }
+        .inv-status { display: inline-block; margin-top: 8px; padding: 3px 12px; border: 1.5px solid #1f6b2c; color: #1f6b2c; border-radius: 20px; font-weight: 700; font-size: 12px; letter-spacing: .5px; }
+        .inv-status.due { border-color: #b3261e; color: #b3261e; }
+        .inv-foot { margin-top: 30px; padding-top: 14px; border-top: 1px dashed #cbb9a7; text-align: center; color: #5d524c; font-size: 12.5px; }
+        .inv-foot strong { color: #8f1d14; font-size: 14px; }
+        .inv-items tr, .inv-sums, .inv-info, .inv-top { break-inside: avoid; page-break-inside: avoid; }
+        @media (max-width: 640px) { .inv-top, .inv-bottom, .inv-info { grid-template-columns: 1fr; flex-direction: column; } .inv-title { text-align: left; } .inv-sheet { padding: 20px; } }
+        @media print {
+            .inv-actions { display: none !important; }
+            body.inv-body { margin: 0; }
+            .inv-sheet { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
+        }
+    </style>
+</head>
+<body class="inv-body">
+    {% set method = payment_methods.get(b['payment_method'], '') if b['payment_method'] else '' %}
+    {% set ptype = payment_types.get(b['payment_type'], '') if b['payment_type'] else '' %}
+    {% set due = (balance if b['status'] != 'Cancelled' and b['payment_status'] != 'Refunded' else 0) %}
+
+    <div class="inv-actions">
+        <button class="primary-btn btn-sm" onclick="window.print()">Print / Save as PDF</button>
+        <a class="secondary-btn btn-sm" href="{{ url_for('admin.booking_detail', booking_id=b['booking_id']) }}">Back</a>
+    </div>
+
+    <div class="inv-sheet">
+        <div class="inv-top">
+            <div class="inv-brand">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="">
+                <div>
+                    <h1>Gajanan Kala Kendra</h1>
+                    <p>{{ shop.address }}<br>{{ shop.phone }} &middot; {{ shop.email }}</p>
+                </div>
+            </div>
+            <div class="inv-title">
+                <div class="word">INVOICE</div>
+                <table>
+                    <tr><td>Invoice No.</td><td><strong>{{ b['booking_id'] }}</strong></td></tr>
+                    <tr><td>Date</td><td>{{ b['created_at'] | fdate }}</td></tr>
+                    {% if b['receipt_no'] %}<tr><td>Receipt No.</td><td>{{ b['receipt_no'] }}</td></tr>{% endif %}
+                </table>
+            </div>
+        </div>
+
+        <div class="inv-info">
+            <div class="inv-box">
+                <h4>Billed to</h4>
+                <p><strong>{{ b['customer_name'] }}</strong><br>{{ b['contact_number'] }}{% if b['email'] %}<br>{{ b['email'] }}{% endif %}</p>
+            </div>
+            <div class="inv-box">
+                <h4>{{ b['delivery_option'] }}</h4>
+                <p>Event date: <strong>{{ b['booking_date'] | fdate }}</strong>{% if b['branch_name'] %}<br>Branch: {{ b['branch_name'] }}{% endif %}<br>{{ b['delivery_address'] }}</p>
+            </div>
+        </div>
+
+        <table class="inv-items">
+            <thead><tr><th style="width:36px">#</th><th>Item</th><th class="r" style="width:50px">Qty</th><th class="r" style="width:110px">Unit price</th><th class="r" style="width:120px">Amount</th></tr></thead>
+            <tbody><tr>
+                <td>1</td>
+                <td><strong>{{ b['idol_name'] }}</strong><br><small>{{ b['category'] }}{% if b['material'] %} &middot; {{ b['material'] }}{% endif %}{% if b['idol_size'] and b['idol_size'] > 0 %} &middot; {{ b['idol_size'] }} in{% endif %}</small></td>
+                <td class="r">{{ b['quantity'] }}</td>
+                <td class="r">{{ b['unit_price'] | inr }}</td>
+                <td class="r">{{ b['total_price'] | inr }}</td>
+            </tr></tbody>
+        </table>
+
+        <div class="inv-bottom">
+            <div class="inv-pay">
+                <div>Payment status: <b>{{ b['payment_status'] }}</b></div>
+                {% if method %}<div>Payment method: <b>{{ method }}</b>{% if ptype %} ({{ ptype }}){% endif %}</div>{% endif %}
+                {% if b['txn_id'] %}<div>Transaction ID: <b>{{ b['txn_id'] }}</b></div>{% endif %}
+                <div>Booking status: <b>{{ b['status'] }}</b></div>
+                <span class="inv-status {{ 'due' if due > 0 }}">{{ 'BALANCE DUE' if due > 0 else 'PAID IN FULL' }}</span>
+            </div>
+            <div class="inv-sums">
+                <div><span>Total</span><strong>{{ b['total_price'] | inr }}</strong></div>
+                <div><span>Paid</span><span>{{ paid | inr }}</span></div>
+                <div><span>Balance due</span><span>{{ due | inr }}</span></div>
+            </div>
+        </div>
+
+        <div class="inv-foot">
+            <strong>Thank you for choosing Gajanan Kala Kendra. Ganpati Bappa Morya!</strong><br>
+            This is a computer-generated invoice and does not need a signature.
+        </div>
+    </div>
+</body>
+</html>

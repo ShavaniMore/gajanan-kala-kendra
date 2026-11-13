@@ -1,0 +1,64 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import stars %}
+{% block title %}Reviews{% endblock %}
+{% block crumb %}People{% endblock %}
+{% block heading %}Manage Reviews{% endblock %}
+
+{% block content %}
+<div class="ad-grid g-main">
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-chat-square-heart"></i> All reviews <span class="badge grey">{{ rows | length }}</span></h3></div>
+        <form class="ad-toolbar" method="GET" action="{{ url_for('admin.reviews') }}">
+            <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Search name or comment"></div>
+            <select name="rating" data-autosubmit>
+                <option value="">All ratings</option>
+                {% for n in [5,4,3,2,1] %}<option value="{{ n }}" {{ 'selected' if rating == n }}>{{ n }} star{{ '' if n == 1 else 's' }}</option>{% endfor %}
+            </select>
+            <button class="btn-ghost" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+            {% if q or rating %}<a class="btn-ghost" href="{{ url_for('admin.reviews') }}">Clear</a>{% endif %}
+        </form>
+        <div class="ad-card-body" style="display:grid;gap:14px">
+            {% for r in rows %}
+            <div class="review-card" style="background:#fcf9f3">
+                <div class="who">
+                    <div class="avatar">{{ r['customer_name'][:1] | upper }}</div>
+                    <div style="flex:1"><h4>{{ r['customer_name'] }}</h4>
+                        <div class="for">{% if r['idol_name'] %}Reviewed: <strong>{{ r['idol_name'] }}</strong>{% else %}General shop feedback{% endif %} · {{ r['created_at'] | fdate }}</div></div>
+                    {{ stars(r['rating']) }}
+                    <form action="{{ url_for('admin.review_delete', review_id=r['id']) }}" method="POST" data-confirm="Delete this review permanently?">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                        <button class="icon-btn danger" type="submit" title="Delete review"><i class="bi bi-trash3"></i></button>
+                    </form>
+                </div>
+                <p class="rev-text">{{ r['comment'] }}</p>
+            </div>
+            {% else %}
+            <div class="empty-state" style="grid-column:auto"><i class="bi bi-chat-square-heart"></i><h3>No reviews match.</h3></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-star-fill"></i> Rating summary</h3></div>
+            <div class="ad-card-body">
+                <div style="text-align:center;margin-bottom:18px">
+                    <strong style="font:700 44px 'Playfair Display',serif;color:var(--deep-red)">{{ '%.1f' | format(average) }}</strong>
+                    <div class="stars-big">{% for i in range(1,6) %}<i class="bi {{ 'bi-star-fill' if average >= i else ('bi-star-half' if average >= i - 0.5 else 'bi-star') }}"></i>{% endfor %}</div>
+                    <small class="muted">{{ total }} review{{ '' if total == 1 else 's' }} in total</small>
+                </div>
+                <div class="rev-dist">
+                    {% for n in [5,4,3,2,1] %}
+                    <div class="bar-row" style="grid-template-columns:44px minmax(0,1fr) 30px">
+                        <span class="lbl">{{ n }} ★</span>
+                        <span class="track"><span class="fill" style="width:{{ ((dist.get(n, 0)) * 100 / dist_max) | round | int }}%;display:block"></span></span>
+                        <span class="val">{{ dist.get(n, 0) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

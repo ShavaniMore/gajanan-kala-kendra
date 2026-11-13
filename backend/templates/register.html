@@ -1,0 +1,67 @@
+{% extends "auth_layout.html" %}
+{% block title %}Register | Gajanan Kala Kendra{% endblock %}
+{% block brand %}
+    <h1>Bring Bappa <span>Home.</span></h1>
+    <p>Create your account to book idols, track orders and share your devotion.</p>
+{% endblock %}
+{% block form %}
+    <h2>Create Account</h2>
+    <p class="subtitle">Register a new customer account</p>
+
+    <form action="{{ url_for('register') }}" method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="username">Full Name</label>
+                <div class="input-box"><i class="bi bi-person"></i>
+                    <input id="username" name="username" type="text" placeholder="Your full name" value="{{ form.get('username', '') }}" required></div>
+            </div>
+            <div class="form-group">
+                <label for="phone">Mobile Number</label>
+                <div class="input-box"><i class="bi bi-phone"></i>
+                    <input id="phone" name="phone" type="tel" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit number" value="{{ form.get('phone', '') }}" required></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-box"><i class="bi bi-envelope"></i>
+                <input id="email" name="email" type="email" placeholder="Enter your email" value="{{ form.get('email', '') }}" required></div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-box"><i class="bi bi-lock"></i>
+                    <input id="password" name="password" type="password" minlength="6" placeholder="Create password" required></div>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="input-box"><i class="bi bi-shield-lock"></i>
+                    <input id="confirm_password" name="confirm_password" type="password" minlength="6" placeholder="Confirm password" required></div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="address">City / Area</label>
+                <div class="input-box"><i class="bi bi-geo-alt"></i>
+                    <input id="address" name="address" type="text" placeholder="e.g. Dadar, Mumbai" value="{{ form.get('address', '') }}"></div>
+            </div>
+            <div class="form-group">
+                <label for="security_answer">Favourite sweet? (optional)</label>
+                <div class="input-box"><i class="bi bi-question-circle"></i>
+                    <input id="security_answer" name="security_answer" type="text" placeholder="Password recovery answer" value="{{ form.get('security_answer', '') }}"></div>
+            </div>
+        </div>
+
+        <label class="terms-row">
+            <input type="checkbox" required>
+            <span>I agree to the Terms &amp; Conditions and Privacy Policy.</span>
+        </label>
+
+        <button class="auth-btn" type="submit">Create Account <i class="bi bi-arrow-right"></i></button>
+    </form>
+
+    <div class="switch-text">Already have an account? <a href="{{ url_for('login') }}">Login</a></div>
+{% endblock %}

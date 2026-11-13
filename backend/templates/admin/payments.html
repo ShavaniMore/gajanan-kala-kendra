@@ -1,0 +1,55 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Payments{% endblock %}
+{% block crumb %}Orders{% endblock %}
+{% block heading %}Payments{% endblock %}
+
+{% block content %}
+<div class="ad-grid g4">
+    <div class="kpi dark"><span class="ico"><i class="bi bi-receipt"></i></span><div><small>Total Billed</small><strong>{{ summary.billed | inr }}</strong><em>active bookings</em></div></div>
+    <div class="kpi green"><span class="ico"><i class="bi bi-cash-coin"></i></span><div><small>Collected</small><strong>{{ summary.collected | inr }}</strong><em>advance + full payments</em></div></div>
+    <div class="kpi gold"><span class="ico"><i class="bi bi-hourglass-split"></i></span><div><small>Balance to Collect</small><strong>{{ summary.balance | inr }}</strong><em>still pending</em></div></div>
+    <div class="kpi red"><span class="ico"><i class="bi bi-arrow-counterclockwise"></i></span><div><small>Refunded</small><strong>{{ summary.refunded | inr }}</strong><em>marked refunded</em></div></div>
+</div>
+
+<div class="ad-card">
+    <div class="ad-card-head"><h3><i class="bi bi-wallet2"></i> Payment Records</h3></div>
+    <div class="tabs">
+        <a class="{{ 'on' if status == 'all' }}" href="{{ url_for('admin.payments') }}">All</a>
+        {% for p in payment_statuses %}<a class="{{ 'on' if status == p }}" href="{{ url_for('admin.payments', status=p) }}">{{ p }}</a>{% endfor %}
+    </div>
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.payments') }}">
+        <input type="hidden" name="status" value="{{ status }}">
+        <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Booking ID, customer or phone"></div>
+        <button class="btn-ghost" type="submit"><i class="bi bi-search"></i> Search</button>
+    </form>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Booking</th><th>Customer</th><th>Item</th><th class="num">Total</th><th class="num">Collected</th><th class="num">Balance</th><th>Update payment</th></tr></thead>
+            <tbody>
+            {% for it in items %}{% set b = it.row %}
+            {% set due = 0 if (b['status'] == 'Cancelled' or b['payment_status'] == 'Refunded') else (b['total_price'] | float) - it.paid %}
+            <tr>
+                <td><a href="{{ url_for('admin.booking_detail', booking_id=b['booking_id']) }}"><span class="badge grey">{{ b['booking_id'] }}</span></a><br><small>{{ b['created_at'] | fdate }}</small></td>
+                <td><strong>{{ b['customer_name'] }}</strong><br><small>{{ b['contact_number'] }}</small></td>
+                <td>{{ b['idol_name'] }} <small>× {{ b['quantity'] }}</small><br>{{ status_badge(b['status']) }}</td>
+                <td class="num"><strong>{{ b['total_price'] | inr }}</strong></td>
+                <td class="num" style="color:#1f6b2c"><strong>{{ it.paid | inr }}</strong></td>
+                <td class="num" style="color:{{ 'var(--deep-red)' if due > 0 else 'var(--muted)' }}"><strong>{{ due | inr }}</strong></td>
+                <td>
+                    <form class="mini-form" action="{{ url_for('admin.booking_payment_update', booking_id=b['booking_id']) }}" method="POST">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                        <select name="payment_status">{% for p in payment_statuses %}<option value="{{ p }}" {{ 'selected' if b['payment_status'] == p }}>{{ p }}</option>{% endfor %}</select>
+                        <button type="submit" title="Save"><i class="bi bi-check-lg"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="7">No payment records found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

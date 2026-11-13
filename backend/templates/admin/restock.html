@@ -1,0 +1,64 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Restock Alerts{% endblock %}
+{% block crumb %}Shop{% endblock %}
+{% block heading %}Restock Alerts{% endblock %}
+
+{% block content %}
+<div class="ad-grid g3">
+    <div class="kpi gold"><span class="ico"><i class="bi bi-hourglass-split"></i></span><div><small>Waiting</small><strong>{{ counts.get('Waiting', 0) }}</strong><em>item still out of stock</em></div></div>
+    <div class="kpi green"><span class="ico"><i class="bi bi-bell-fill"></i></span><div><small>Ready to notify</small><strong>{{ counts.get('Ready', 0) }}</strong><em>item is back in stock</em></div></div>
+    <div class="kpi dark"><span class="ico"><i class="bi bi-check2-all"></i></span><div><small>Notified</small><strong>{{ counts.get('Notified', 0) }}</strong><em>customer informed</em></div></div>
+</div>
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-bell"></i> Customers waiting for products</h3>
+        <form action="{{ url_for('admin.restock_check') }}" method="POST">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="primary-btn btn-sm" type="submit"><i class="bi bi-arrow-repeat"></i> Check restocked items</button>
+        </form>
+    </div>
+    <div class="tabs">
+        <a class="{{ 'on' if status == 'all' }}" href="{{ url_for('admin.restock') }}">All</a>
+        {% for s in ['Waiting', 'Ready', 'Notified'] %}<a class="{{ 'on' if status == s }}" href="{{ url_for('admin.restock', status=s) }}">{{ s }} <b>{{ counts.get(s, 0) }}</b></a>{% endfor %}
+    </div>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Product</th><th>Customer</th><th class="num">Current stock</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for a in rows %}
+            <tr>
+                <td><strong>{{ a['idol_name'] }}</strong></td>
+                <td>{{ a['username'] or 'Deleted user' }}<br><small>{{ a['email'] or '—' }}</small></td>
+                <td class="num"><strong>{{ a['stock_count'] }}</strong></td>
+                <td><span class="badge {{ 'green' if a['status'] == 'Ready' else ('grey' if a['status'] == 'Notified' else 'amber') }}">{{ a['status'] }}</span></td>
+                <td>{{ a['created_at'] | fdate }}</td>
+                <td>
+                    <div class="row-actions">
+                        {% if a['email'] and a['status'] == 'Ready' %}
+                        <a class="btn-ghost" style="padding:6px 11px" title="Open your email app with a ready message"
+                           href="mailto:{{ a['email'] }}?subject={{ ('Good news - ' ~ a['idol_name'] ~ ' is back in stock!') | urlencode }}&body={{ ('Namaste ' ~ (a['username'] or '') ~ ',\n\n' ~ a['idol_name'] ~ ' is available again at Gajanan Kala Kendra. Book it now before it sells out.\n\nGanpati Bappa Morya!') | urlencode }}"><i class="bi bi-envelope"></i> Email</a>
+                        {% endif %}
+                        {% if a['status'] == 'Ready' %}
+                        <form action="{{ url_for('admin.restock_notified', alert_id=a['id']) }}" method="POST">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                            <button class="icon-btn" type="submit" title="Mark as notified"><i class="bi bi-check2-all"></i></button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('admin.restock_delete', alert_id=a['id']) }}" method="POST" data-confirm="Remove this alert?">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                            <button class="icon-btn danger" type="submit" title="Remove"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="6">No restock requests yet. Customers can tap “Notify me” on an out-of-stock item.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

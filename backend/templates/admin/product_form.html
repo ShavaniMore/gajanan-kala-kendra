@@ -1,0 +1,73 @@
+{% extends "admin/_layout.html" %}
+{% block title %}{{ 'Add Product' if is_new else 'Edit Product' }}{% endblock %}
+{% block crumb %}Products{% endblock %}
+{% block heading %}{{ 'Add New Product' if is_new else 'Edit Product' }}{% endblock %}
+
+{% block content %}
+<div class="ad-card" style="max-width:920px">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-pencil-square"></i> {{ 'Product details' if is_new else item['name'] }}</h3>
+        <a class="btn-ghost" href="{{ url_for('admin.products') }}"><i class="bi bi-arrow-left"></i> Back to products</a>
+    </div>
+    <form class="ad-form" method="POST" enctype="multipart/form-data"
+          action="{{ url_for('admin.product_new') if is_new else url_for('admin.product_edit', idol_id=item['id']) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+        <div class="field">
+            <label>Product photo</label>
+            <div class="upload-box">
+                <img id="imagePreview" src="{{ item['image_url'] }}" alt="Preview">
+                <div>
+                    <input id="imageFile" type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif">
+                    <p class="hint" style="margin-top:8px">PNG, JPG, WEBP or GIF · max 4 MB.{% if not is_new %} Leave empty to keep the current photo.{% endif %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="fg2">
+            <div class="field"><label for="name">Product name *</label>
+                <input id="name" name="name" value="{{ item['name'] }}" required maxlength="150" placeholder="e.g. Jasvandi Ganpati"></div>
+            <div class="field"><label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    {% for c in category_values %}<option value="{{ c }}" {{ 'selected' if c == item['category'] }}>{{ c }}</option>{% endfor %}
+                </select></div>
+        </div>
+
+        <div class="fg3">
+            <div class="field"><label for="price">Price (₹) *</label>
+                <input id="price" type="number" name="price" min="1" step="0.01" value="{{ item['price'] }}" required></div>
+            <div class="field"><label for="size">Size (inches)</label>
+                <input id="size" type="number" name="size" min="0" value="{{ item['size'] }}"><div class="hint">Use 0 for add-ons</div></div>
+            <div class="field"><label for="rating">Rating (0–5)</label>
+                <input id="rating" type="number" name="rating" min="0" max="5" step="0.1" value="{{ item['rating'] }}"></div>
+        </div>
+
+        <div class="fg2">
+            <div class="field"><label for="material">Material *</label>
+                <input id="material" name="material" value="{{ item['material'] }}" required maxlength="100" placeholder="e.g. Shadu Mati"></div>
+            <div class="field"><label for="design_type">Design style *</label>
+                <input id="design_type" name="design_type" value="{{ item['design_type'] }}" required maxlength="150" placeholder="e.g. Royal Baithak"></div>
+        </div>
+
+        <div class="fg2">
+            <div class="field"><label for="stock_count">Stock quantity *</label>
+                <input id="stock_count" type="number" name="stock_count" min="0" value="{{ item['stock_count'] }}" required></div>
+            <div class="field"><label for="low_stock_limit">Low-stock alert at</label>
+                <input id="low_stock_limit" type="number" name="low_stock_limit" min="0" value="{{ item['low_stock_limit'] }}">
+                <div class="hint">Shows a “Low Stock” warning at or below this number</div></div>
+        </div>
+
+        <div class="field"><label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="A short description customers will read">{{ item['description'] or '' }}</textarea></div>
+
+        <div class="field">
+            <label class="switch-row"><input type="checkbox" name="is_active" value="1" {{ 'checked' if item['is_active'] }}> Visible in the shop</label>
+        </div>
+
+        <div class="form-actions">
+            <button class="primary-btn" type="submit"><i class="bi bi-check-lg"></i> {{ 'Add product' if is_new else 'Save changes' }}</button>
+            <a class="secondary-btn" href="{{ url_for('admin.products') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

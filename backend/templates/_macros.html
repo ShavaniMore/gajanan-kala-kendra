@@ -1,0 +1,110 @@
+{# Shared template pieces - removes the star / flash / product-card code that was repeated in A's pages #}
+
+{% macro stars(rating) %}
+<span class="stars">
+    {%- set r = rating | float -%}
+    {%- for i in range(1, 6) -%}
+        {%- if r >= i -%}<i class="bi bi-star-fill"></i>
+        {%- elif r >= i - 0.5 -%}<i class="bi bi-star-half"></i>
+        {%- else -%}<i class="bi bi-star"></i>{%- endif -%}
+    {%- endfor -%}
+    <span class="num">{{ '%.1f' | format(r) }}</span>
+</span>
+{% endmacro %}
+
+{% macro flashes() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+        <div class="flash {{ category }}" role="alert">
+            <i class="lead bi {{ {'success':'bi-check-circle-fill','danger':'bi-exclamation-triangle-fill','warning':'bi-exclamation-circle-fill','info':'bi-info-circle-fill'}.get(category,'bi-info-circle-fill') }}"></i>
+            <span>{{ message }}</span>
+            <button type="button" aria-label="Close">&times;</button>
+        </div>
+    {% endfor %}
+    {% endif %}
+{% endwith %}
+{% endmacro %}
+
+{% macro stock_label(item) %}
+    {% if item['stock_count'] is not none and item['stock_count'] <= 0 %}
+        <span class="stock out"><i class="bi bi-x-circle-fill"></i> Out of Stock</span>
+    {% elif item['stock_count'] is not none and item['stock_count'] <= 5 %}
+        <span class="stock low"><i class="bi bi-exclamation-circle-fill"></i> Only {{ item['stock_count'] }} left</span>
+    {% else %}
+        <span class="stock ok"><i class="bi bi-check-circle-fill"></i> In Stock</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro product_card(item) %}
+<article class="product-card">
+    <div class="product-img">
+        <img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" loading="lazy">
+        {% if item['category'] == 'Add-Ons' %}<i class="addon-icon bi bi-gem"></i>{% endif %}
+        <span class="badge corner">{{ item['category'] }}</span>
+        {% if item['size'] > 0 %}<span class="badge dark corner right">{{ item['size'] }}"</span>{% endif %}
+        <form class="wish-form" action="{{ url_for('wishlist_toggle', idol_id=item['id']) }}" method="POST" data-ajax>
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+            {% set wished = item['id'] in wish_ids %}
+            <button type="submit" class="wish-btn {{ 'on' if wished }}" data-wish-btn="{{ item['id'] }}" title="Add / remove wishlist" aria-label="Wishlist"><i class="bi {{ 'bi-heart-fill' if wished else 'bi-heart' }}"></i></button>
+        </form>
+    </div>
+    <div class="product-body">
+        {{ stars(item['rating']) }}
+        <h3>{{ item['name'] }}</h3>
+        <p class="desc">{{ item['description'] }}</p>
+        <div class="product-meta">
+            <span class="price">{{ item['price'] | inr }}</span>
+            {{ stock_label(item) }}
+        </div>
+        {% if item['stock_count'] is not none and item['stock_count'] <= 0 %}
+            {% if session.get('user_id') and session.get('role') != 'admin' %}
+            <form action="{{ url_for('notify_me', idol_id=item['id']) }}" method="POST">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                <button class="secondary-btn btn-block" type="submit"><i class="bi bi-bell"></i> Notify me when available</button>
+            </form>
+            {% elif not session.get('user_id') %}
+            <a class="secondary-btn btn-block" href="{{ url_for('login', next=request.full_path.rstrip('?')) }}"><i class="bi bi-bell"></i> Login to get notified</a>
+            {% else %}
+            <button class="primary-btn btn-block btn-disabled" disabled>Out of Stock</button>
+            {% endif %}
+        {% else %}
+            <div class="card-actions">
+                <a href="{{ url_for('book_idol', idol_id=item['id']) }}" class="primary-btn btn-block">
+                    <i class="bi bi-bag-heart"></i> Book Now
+                </a>
+                <form action="{{ url_for('cart_add', idol_id=item['id']) }}" method="POST" data-ajax>
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                    <button type="submit" class="secondary-btn cart-add-btn" title="Add to cart" aria-label="Add to cart"><i class="bi bi-cart-plus"></i></button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</article>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+    {% set cls = {'Confirmed':'green','Ready for Pickup':'dark','Out for Delivery':'','Delivered':'grey','Cancelled':'red'}.get(status,'grey') %}
+    <span class="badge {{ cls }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro recently_viewed_section(items, alt=false) %}
+{% if items %}
+<section class="section {{ 'alt' if alt }}" id="recently-viewed">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <span class="section-tag">RECENTLY VIEWED</span>
+                <h2>Pick up where you <span>left off</span></h2>
+            </div>
+        </div>
+        <div class="product-grid">
+            {% for item in items %}{{ product_card(item) }}{% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,30 @@
+{% extends "admin/_layout.html" %}
+{% block title %}My Profile{% endblock %}
+{% block crumb %}Account{% endblock %}
+{% block heading %}My Profile{% endblock %}
+
+{% block content %}
+<div class="ad-grid g2" style="max-width:980px">
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-person-badge"></i> Administrator</h3><span class="badge dark">Admin</span></div>
+        <div class="ad-card-body"><div class="dl">
+            <div><small>Username</small>{{ user['username'] }}</div>
+            <div><small>Email</small>{{ user['email'] }}</div>
+            <div><small>Phone</small>{{ user['phone'] or '—' }}</div>
+            <div><small>Created</small>{{ user['created_at'] | fdate }}</div>
+        </div></div>
+    </div>
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-shield-lock"></i> Change password</h3></div>
+        <div class="ad-card-body">
+            <form class="action-form" method="POST" action="{{ url_for('admin.profile') }}">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <input type="password" name="current_password" placeholder="Current password" required autocomplete="current-password">
+                <input type="password" name="new_password" placeholder="New password (min 6 characters)" minlength="6" required autocomplete="new-password">
+                <input type="password" name="confirm_password" placeholder="Repeat new password" minlength="6" required autocomplete="new-password">
+                <button class="primary-btn btn-block" type="submit"><i class="bi bi-check-lg"></i> Update password</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

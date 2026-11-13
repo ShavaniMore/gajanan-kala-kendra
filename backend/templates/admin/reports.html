@@ -1,0 +1,91 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Reports{% endblock %}
+{% block crumb %}Insights{% endblock %}
+{% block heading %}Sales Reports{% endblock %}
+
+{% block content %}
+<div class="ad-card">
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.reports') }}" style="border-bottom:0">
+        <label><i class="bi bi-calendar3"></i> From <input type="date" name="from" value="{{ date_from }}"></label>
+        <label>To <input type="date" name="to" value="{{ date_to }}"></label>
+        <button class="primary-btn btn-sm" type="submit"><i class="bi bi-funnel"></i> Apply</button>
+        {% if date_from or date_to %}<a class="btn-ghost" href="{{ url_for('admin.reports') }}">All time</a>{% endif %}
+        <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+            <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='bookings', **{'from': date_from, 'to': date_to}) }}"><i class="bi bi-download"></i> Bookings CSV</a>
+            <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='inventory') }}"><i class="bi bi-download"></i> Inventory CSV</a>
+            <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='customers') }}"><i class="bi bi-download"></i> Customers CSV</a>
+        </span>
+    </form>
+</div>
+
+<div class="ad-grid g4">
+    <div class="kpi green"><span class="ico"><i class="bi bi-currency-rupee"></i></span><div><small>Revenue</small><strong>{{ revenue | inr }}</strong><em>excluding cancelled</em></div></div>
+    <div class="kpi red"><span class="ico"><i class="bi bi-calendar-check"></i></span><div><small>Orders</small><strong>{{ orders }}</strong><em>{{ units }} unit(s) booked</em></div></div>
+    <div class="kpi gold"><span class="ico"><i class="bi bi-receipt-cutoff"></i></span><div><small>Average Order</small><strong>{{ avg_order | inr }}</strong><em>per booking</em></div></div>
+    <div class="kpi dark"><span class="ico"><i class="bi bi-x-circle"></i></span><div><small>Cancellation Rate</small><strong>{{ '%.1f' | format(cancel_rate) }}%</strong><em>{{ cancelled }} cancelled</em></div></div>
+</div>
+
+<div class="ad-card">
+    <div class="ad-card-head"><h3><i class="bi bi-graph-up-arrow"></i> Revenue by month</h3></div>
+    <div class="ad-card-body">
+        {% if months %}
+        <div class="col-chart">
+            {% for label, value in months %}
+            <div class="col"><span class="v">{{ value | inr }}</span><div class="bar" style="height:{{ (value * 100 / month_max) | round | int }}%"></div><span class="m">{{ label }}</span></div>
+            {% endfor %}
+        </div>
+        {% else %}<p class="muted">No sales in this period yet.</p>{% endif %}
+    </div>
+</div>
+
+<div class="ad-grid g2">
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-grid"></i> Revenue by category</h3></div>
+        <div class="ad-card-body bars">
+            {% for r in by_category %}
+            <div class="bar-row" style="grid-template-columns:130px minmax(0,1fr) 90px">
+                <span class="lbl">{{ r['label'] }}</span>
+                <span class="track"><span class="fill red" style="width:{{ (r['revenue'] | float * 100 / cat_max) | round | int }}%;display:block"></span></span>
+                <span class="val">{{ r['revenue'] | inr }}</span>
+            </div>
+            {% else %}<p class="muted">No data yet.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-trophy"></i> Top selling items</h3></div>
+        <div class="ad-card-body bars">
+            {% for r in top_items %}
+            <div class="bar-row" style="grid-template-columns:150px minmax(0,1fr) 60px">
+                <span class="lbl" title="{{ r['label'] }}">{{ r['label'] }}</span>
+                <span class="track"><span class="fill" style="width:{{ (r['units'] * 100 / top_max) | round | int }}%;display:block"></span></span>
+                <span class="val">{{ r['units'] }} pcs</span>
+            </div>
+            {% else %}<p class="muted">No data yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="ad-grid g3">
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-wallet2"></i> By payment</h3></div>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Status</th><th class="num">Orders</th><th class="num">Value</th></tr></thead><tbody>
+            {% for r in by_payment %}<tr><td>{{ r['label'] }}</td><td class="num">{{ r['orders'] }}</td><td class="num"><strong>{{ r['revenue'] | inr }}</strong></td></tr>
+            {% else %}<tr class="empty-row"><td colspan="3">No data</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-truck"></i> By delivery</h3></div>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Mode</th><th class="num">Orders</th><th class="num">Value</th></tr></thead><tbody>
+            {% for r in by_delivery %}<tr><td>{{ r['label'] }}</td><td class="num">{{ r['orders'] }}</td><td class="num"><strong>{{ r['revenue'] | inr }}</strong></td></tr>
+            {% else %}<tr class="empty-row"><td colspan="3">No data</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+    <div class="ad-card">
+        <div class="ad-card-head"><h3><i class="bi bi-list-check"></i> By status</h3></div>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Status</th><th class="num">Orders</th></tr></thead><tbody>
+            {% for r in by_status %}<tr><td>{{ r['label'] }}</td><td class="num"><strong>{{ r['orders'] }}</strong></td></tr>
+            {% else %}<tr class="empty-row"><td colspan="2">No data</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+</div>
+{% endblock %}

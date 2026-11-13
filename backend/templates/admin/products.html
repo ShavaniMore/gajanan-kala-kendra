@@ -1,0 +1,70 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Products{% endblock %}
+{% block crumb %}Shop{% endblock %}
+{% block heading %}Products{% endblock %}
+
+{% block content %}
+<div class="ad-card">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-bag-heart"></i> Catalogue <span class="badge grey">{{ items | length }}</span></h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn-ghost" href="{{ url_for('admin.report_export', kind='inventory') }}"><i class="bi bi-download"></i> Export CSV</a>
+            <a class="primary-btn btn-sm" href="{{ url_for('admin.product_new') }}"><i class="bi bi-plus-lg"></i> Add Product</a>
+        </div>
+    </div>
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.products') }}">
+        <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Search name, material or style"></div>
+        <select name="category" data-autosubmit>
+            <option value="all">All categories</option>
+            {% for c in category_values %}<option value="{{ c }}" {{ 'selected' if c == category }}>{{ c }}</option>{% endfor %}
+        </select>
+        <select name="show" data-autosubmit>
+            <option value="all" {{ 'selected' if show == 'all' }}>All items</option>
+            <option value="low" {{ 'selected' if show == 'low' }}>Low stock</option>
+            <option value="out" {{ 'selected' if show == 'out' }}>Out of stock</option>
+            <option value="hidden" {{ 'selected' if show == 'hidden' }}>Hidden from shop</option>
+        </select>
+        <button class="btn-ghost" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+        {% if q or category != 'all' or show != 'all' %}<a class="btn-ghost" href="{{ url_for('admin.products') }}">Clear</a>{% endif %}
+    </form>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Product</th><th>Category</th><th>Size</th><th class="num">Price</th><th class="num">Stock</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for i in items %}
+            <tr>
+                <td><div class="thumb-cell"><img src="{{ i['image_url'] }}" alt=""><div><strong>{{ i['name'] }}</strong><small>{{ i['material'] }}</small></div></div></td>
+                <td>{{ i['category'] }}</td>
+                <td>{% if i['size'] > 0 %}{{ i['size'] }}"{% else %}—{% endif %}</td>
+                <td class="num"><strong>{{ i['price'] | inr }}</strong></td>
+                <td class="num"><strong>{{ i['stock_count'] }}</strong></td>
+                <td>
+                    {% if not i['is_active'] %}<span class="badge grey">Hidden</span>
+                    {% elif i['stock_count'] <= 0 %}<span class="badge red">Out of Stock</span>
+                    {% elif i['stock_count'] <= i['low_stock_limit'] %}<span class="badge amber">Low Stock</span>
+                    {% else %}<span class="badge green">In Stock</span>{% endif %}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a class="icon-btn" href="{{ url_for('admin.product_edit', idol_id=i['id']) }}" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                        <form action="{{ url_for('admin.product_toggle', idol_id=i['id']) }}" method="POST">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                            <button class="icon-btn" type="submit" title="{{ 'Hide from shop' if i['is_active'] else 'Show in shop' }}"><i class="bi {{ 'bi-eye-slash' if i['is_active'] else 'bi-eye' }}"></i></button>
+                        </form>
+                        <form action="{{ url_for('admin.product_delete', idol_id=i['id']) }}" method="POST" data-confirm="Delete '{{ i['name'] }}' permanently? This cannot be undone.">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                            <button class="icon-btn danger" type="submit" title="Delete"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="7">No products match your filters.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

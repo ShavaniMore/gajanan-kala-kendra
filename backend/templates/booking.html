@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars, recently_viewed_section with context %}
+{% block title %}Book {{ idol['name'] }} | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+        <div>
+            <span class="section-tag">BOOKING</span>
+            <h1>Book your <span>Bappa</span></h1>
+        </div>
+        <a href="{{ url_for('catalogue') }}" class="secondary-btn btn-sm"><i class="bi bi-arrow-left"></i> Back to Shop</a>
+    </div>
+
+    <div class="two-col">
+        <div class="card-box idol-summary">
+            <div class="pic"><img src="{{ idol['image_url'] }}" alt="{{ idol['name'] }}"></div>
+            <h3>{{ idol['name'] }}</h3>
+            <span class="badge">{{ idol['category'] }}</span>
+            <p>{{ idol['description'] }}</p>
+            <div class="kv"><span>Height / Size</span><strong>{% if idol['size'] > 0 %}{{ idol['size'] }} inches{% else %}Standard{% endif %}</strong></div>
+            <div class="kv"><span>Material</span><strong>{{ idol['material'] }}</strong></div>
+            <div class="kv"><span>Design Style</span><strong>{{ idol['design_type'] }}</strong></div>
+            <div class="kv"><span>Rating</span><strong>{{ stars(idol['rating']) }}</strong></div>
+            <div class="kv"><span>Available</span><strong>{{ idol['stock_count'] }} in stock</strong></div>
+            <div class="kv"><span>Price per unit</span><strong style="color:var(--deep-red);font-size:18px">{{ idol['price'] | inr }}</strong></div>
+        </div>
+
+        <div class="card-box">
+            <h3>Customer &amp; Booking Details</h3>
+            {% if idol['stock_count'] <= 0 %}
+                <div class="note">Sorry, this item is currently out of stock. Please choose another idol.</div>
+                <a href="{{ url_for('catalogue') }}" class="primary-btn">Browse other idols</a>
+            {% else %}
+            <form action="{{ url_for('book_idol', idol_id=idol['id']) }}" method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <div class="field">
+                    <label for="customer_name">Full Name *</label>
+                    <input id="customer_name" type="text" name="customer_name" value="{{ form.customer_name }}" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="contact_number">Contact Number *</label>
+                        <input id="contact_number" type="tel" name="contact_number" value="{{ form.contact_number }}" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit WhatsApp / phone" required>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email Address</label>
+                        <input id="email" type="email" name="email" value="{{ form.email }}" placeholder="name@example.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="quantity">Quantity</label>
+                        <input id="quantity" type="number" name="quantity" value="{{ form.quantity }}" min="1" max="{{ [idol['stock_count'], 10] | min }}" required>
+                    </div>
+                    <div class="field">
+                        <label for="booking_date">Booking / Sthapana Date *</label>
+                        <input id="booking_date" type="date" name="booking_date" value="{{ form.booking_date }}" min="{{ today }}" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="delivery_option">Pickup / Delivery Option *</label>
+                    <select id="delivery_option" name="delivery_option" required>
+                        <option value="Store Pickup" {{ 'selected' if form.delivery_option == 'Store Pickup' }}>Store Pickup (visit workshop)</option>
+                        <option value="Home Delivery" {{ 'selected' if form.delivery_option == 'Home Delivery' }}>Home Delivery (safe transport)</option>
+                    </select>
+                </div>
+
+                {% if branches %}
+                <div class="field">
+                    <label for="branch_id">Pickup / Dispatch Branch</label>
+                    <select id="branch_id" name="branch_id">
+                        <option value="0">No preference (workshop will assign)</option>
+                        {% for b in branches %}<option value="{{ b['id'] }}" {{ 'selected' if form.branch_id == b['id'] }}>{{ b['branch_name'] }}, {{ b['city'] }} ({{ b['stock_count'] }} available)</option>{% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="field">
+                    <label for="delivery_address" id="addressLabel">Delivery Address / Notes</label>
+                    <textarea id="delivery_address" name="delivery_address" rows="2" placeholder="Enter delivery address or pickup note">{{ form.delivery_address }}</textarea>
+                </div>
+
+                <div class="total-box"><span>Total Amount</span><strong id="liveTotal" data-unit="{{ idol['price'] | float }}">{{ idol['price'] | inr }}</strong></div>
+
+                {% include "_payment.html" %}
+
+                <button type="submit" class="primary-btn btn-block" style="padding:15px;font-size:15px">
+                    <i class="bi bi-lock"></i> Pay Now &amp; Confirm Booking
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+
+{{ recently_viewed_section(recently_viewed) }}
+{% endblock %}

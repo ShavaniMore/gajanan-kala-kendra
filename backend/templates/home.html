@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card, stars, recently_viewed_section with context %}
+{% block title %}Gajanan Kala Kendra | Ganpati Shop{% endblock %}
+
+{% block content %}
+<section class="hero" id="home">
+    <div class="container hero-grid">
+        <div class="hero-content">
+            <span class="festival-badge"><i class="bi bi-stars"></i> Celebrate the divine arrival</span>
+            <h1>Welcome to <span>Ganpati Shop</span></h1>
+            <p>Discover beautifully crafted Ganpati idols — ready, eco-friendly clay and PoP — with festive shringar add-ons, and celebrate {{ festival_name }} with devotion, joy and tradition.</p>
+
+            <div class="hero-actions">
+                <a href="{{ url_for('catalogue') }}" class="primary-btn">Explore Idols <i class="bi bi-arrow-right"></i></a>
+                <a href="{{ url_for('track_order') }}" class="secondary-btn"><i class="bi bi-truck"></i> Track Booking</a>
+            </div>
+
+            <div class="hero-features">
+                <div><i class="bi bi-patch-check-fill"></i> Beautiful Designs</div>
+                <div><i class="bi bi-shield-check"></i> Secure Booking</div>
+                <div><i class="bi bi-truck"></i> Easy Delivery</div>
+            </div>
+
+            {% if session.get('user_id') %}
+                <div class="welcome-strip"><i class="bi bi-person-heart"></i> Namaste, {{ session.get('username') }}! Your account is ready for booking.</div>
+            {% endif %}
+        </div>
+
+        <div class="hero-image-card">
+            <img src="{{ url_for('static', filename='images/hero-ganpati.jpg') }}" alt="Beautiful Ganpati idol">
+            <div class="image-label">
+                <div>
+                    <small>Welcome Bappa</small>
+                    <h3>Ganpati Bappa Morya</h3>
+                </div>
+                <span class="label-icon"><i class="bi bi-heart-fill"></i></span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="festival-section" id="festival">
+    <div class="container">
+        <div class="section-heading">
+            <span class="section-tag">FESTIVAL INFORMATION</span>
+            <h2>Ganpati Bappa is <span>Coming Home!</span></h2>
+            <p>Get ready to welcome Lord Ganesha with love, devotion and joy.</p>
+        </div>
+
+        <div class="countdown-card" id="countdown" data-festival="{{ festival_date }}">
+            <div>
+                <p class="countdown-label">{{ festival_name | upper }}</p>
+                <h3>Festival Countdown</h3>
+                <p class="countdown-date">{{ festival_label }}</p>
+            </div>
+            <div class="countdown-timer">
+                <div><strong id="days">00</strong><span>Days</span></div>
+                <div><strong id="hours">00</strong><span>Hours</span></div>
+                <div><strong id="minutes">00</strong><span>Minutes</span></div>
+                <div><strong id="seconds">00</strong><span>Seconds</span></div>
+            </div>
+            <p class="countdown-over" hidden>Ganpati Bappa Morya!  {{ festival_name }} is here.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="categories">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <span class="section-tag">SHOP BY CATEGORY</span>
+                <h2>Find your <span>Bappa</span></h2>
+            </div>
+            <a class="link-arrow" href="{{ url_for('catalogue') }}">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% set thumbs = {'Ready Ganpati': 'bappa_1.png', 'Ecofriendly': 'bappa_2.png', 'PoP Ganpati': 'bappa_4.png', 'Add-Ons': 'pheta.jpg'} %}
+        <div class="category-grid">
+            {% for value, label, blurb in categories %}
+            <a class="category-card" href="{{ url_for('catalogue', category=value) }}">
+                <div class="thumb"><img src="{{ url_for('static', filename='images/' ~ thumbs[value]) }}" alt="{{ label }}" loading="lazy"></div>
+                <h3>{{ label }}</h3>
+                <p>{{ blurb }}</p>
+                <span class="link-arrow">Browse <i class="bi bi-arrow-right"></i></span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section alt">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <span class="section-tag">TOP RATED</span>
+                <h2>Trending <span>Ganpati Idols</span></h2>
+            </div>
+            <a class="link-arrow" href="{{ url_for('catalogue') }}">See all idols <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="product-grid">
+            {% for idol in featured_idols %}{{ product_card(idol) }}{% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <span class="section-tag">SHRINGAR</span>
+                <h2>Festive <span>Add-Ons</span></h2>
+            </div>
+            <a class="link-arrow" href="{{ url_for('catalogue', category='Add-Ons') }}">See all add-ons <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="product-grid">
+            {% for addon in featured_addons %}{{ product_card(addon) }}{% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if recent_reviews %}
+<section class="section alt">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <span class="section-tag">TESTIMONIALS</span>
+                <h2>Words from our <span>Devotees</span></h2>
+            </div>
+            <a class="link-arrow" href="{{ url_for('reviews') }}">Read all reviews <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="review-grid">
+            {% for rev in recent_reviews %}
+            <div class="review-card">
+                <div class="who">
+                    <div class="avatar">{{ rev['customer_name'][:1] | upper }}</div>
+                    <div>
+                        <h4>{{ rev['customer_name'] }}</h4>
+                        {% if rev['idol_name'] %}<div class="for">{{ rev['idol_name'] }}</div>{% endif %}
+                    </div>
+                </div>
+                {{ stars(rev['rating']) }}
+                <p>{{ rev['comment'] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{{ recently_viewed_section(recently_viewed, true) }}
+
+<section class="about-section" id="about">
+    <div class="container about-grid">
+        <div>
+            <span class="section-tag">ABOUT US</span>
+            <h2>Bringing <span>Bappa</span> closer to every home.</h2>
+        </div>
+        <div>
+            <p>Gajanan Kala Kendra is a Ganpati-focused shopping platform created to make the festival experience simple and joyful. Browse handcrafted idols in Ready, Eco-friendly clay and PoP styles, add traditional shringar, and book your Bappa online.</p>
+            <p>Choose store pickup or safe home delivery, then track your booking from confirmation to delivery — all in one place.</p>
+        </div>
+    </div>
+</section>
+
+<section class="contact-section" id="contact">
+    <div class="container contact-card">
+        <div>
+            <span class="section-tag">CONTACT</span>
+            <h2>Ready to welcome Bappa?</h2>
+            <p>Call {{ shop.phone }} · <a class="map-link" href="{{ shop.maps }}" target="_blank" rel="noopener"><i class="bi bi-geo-alt"></i> {{ shop.address }}</a></p>
+            <div class="contact-social">
+                <a class="social-btn wa" href="https://wa.me/{{ shop.whatsapp }}?text=Namaste%2C%20I%20want%20to%20know%20about%20Ganpati%20idols" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                <a class="social-btn ig" href="{{ shop.instagram }}" target="_blank" rel="noopener"><i class="bi bi-instagram"></i> Instagram</a>
+            </div>
+        </div>
+        {% if session.get('user_id') %}
+            <a class="primary-btn" href="{{ url_for('catalogue') }}">Book Your Idol <i class="bi bi-arrow-right"></i></a>
+        {% else %}
+            <a class="primary-btn" href="{{ url_for('login') }}">Login / Register <i class="bi bi-arrow-right"></i></a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

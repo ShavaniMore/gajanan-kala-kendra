@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ b['booking_id'] }} | Gajanan Kala Kendra</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="invoice-body">
+    <div class="invoice-actions">
+        <button class="primary-btn btn-sm" onclick="window.print()">Print / Save as PDF</button>
+        <a class="secondary-btn btn-sm" href="{{ url_for('admin.booking_detail', booking_id=b['booking_id']) }}">Back</a>
+    </div>
+    <div class="invoice">
+        <div class="invoice-head">
+            <div>
+                <h1>Gajanan Kala Kendra</h1>
+                <p class="muted">Dadar &amp; Lalbaug Workshop, Mumbai<br>+91 98765 43210 · admin@bappastore.com</p>
+            </div>
+            <div style="text-align:right">
+                <strong style="font-size:18px">INVOICE</strong><br>
+                <span>{{ b['booking_id'] }}</span><br>
+                <span class="muted">{{ b['created_at'] | fdate }}</span>
+            </div>
+        </div>
+
+        <p><strong>Billed to</strong><br>{{ b['customer_name'] }}<br>{{ b['contact_number'] }}{% if b['email'] %}<br>{{ b['email'] }}{% endif %}</p>
+        <p style="margin-top:10px"><strong>{{ b['delivery_option'] }}</strong> · Event date {{ b['booking_date'] | fdate }}<br>{{ b['delivery_address'] }}</p>
+
+        <table>
+            <thead><tr><th>Item</th><th>Qty</th><th style="text-align:right">Unit price</th><th style="text-align:right">Amount</th></tr></thead>
+            <tbody><tr>
+                <td><strong>{{ b['idol_name'] }}</strong><br><small class="muted">{{ b['category'] }} · {{ b['material'] }}</small></td>
+                <td>{{ b['quantity'] }}</td>
+                <td style="text-align:right">{{ b['unit_price'] | inr }}</td>
+                <td style="text-align:right">{{ b['total_price'] | inr }}</td>
+            </tr></tbody>
+        </table>
+
+        <div class="tot">
+            <div>Total: <strong>{{ b['total_price'] | inr }}</strong></div>
+            <div>Paid: {{ paid | inr }} <span class="muted">({{ b['payment_status'] }})</span></div>
+            <div>Balance due: <strong>{{ (balance if b['status'] != 'Cancelled' and b['payment_status'] != 'Refunded' else 0) | inr }}</strong></div>
+        </div>
+        <p class="muted" style="margin-top:28px;text-align:center">Thank you for choosing Gajanan Kala Kendra. Ganpati Bappa Morya! 🙏</p>
+    </div>
+</body>
+</html>

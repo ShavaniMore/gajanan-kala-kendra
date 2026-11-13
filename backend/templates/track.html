@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Track Booking | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="card-box track-box">
+        <span class="section-tag">TRACK ORDER</span>
+        <h1 style="font-size:32px;margin:8px 0">Track Your <span style="color:var(--saffron)">Sthapana</span> Booking</h1>
+        <p style="color:var(--muted)">Enter your <strong>Booking ID</strong> or the <strong>phone number</strong> used while booking.</p>
+        <form class="track-form" action="{{ url_for('track_order') }}" method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="text" name="track_query" value="{{ query }}" placeholder="Booking ID (BAPPA-...) or 10-digit phone" required>
+            <button type="submit" class="primary-btn"><i class="bi bi-search"></i> Track Now</button>
+        </form>
+    </div>
+
+    {% if searched %}
+        {% for b in bookings %}
+        {% set cancelled = b['status'] == 'Cancelled' %}
+        {% set steps = ['Confirmed', 'Ready for Pickup', 'Delivered'] if b['delivery_option'] == 'Store Pickup' else ['Confirmed', 'Out for Delivery', 'Delivered'] %}
+        {% set idx = steps.index(b['status']) if b['status'] in steps else 0 %}
+        <div class="card-box track-result">
+            <div class="track-head {{ 'cancelled' if cancelled }}">
+                <h3><i class="bi bi-box-seam"></i> Status: {{ b['status'] }}</h3>
+                <span class="id-chip">{{ b['booking_id'] }}</span>
+            </div>
+
+            {% if not cancelled %}
+            <div class="steps">
+                {% for s in steps %}
+                    <div class="step {{ 'done' if loop.index0 <= idx }} {{ 'now' if loop.index0 == idx }}">
+                        <div class="dot"><i class="bi {{ 'bi-check-lg' if loop.index0 <= idx else 'bi-circle' }}"></i></div>
+                        {{ s }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="track-body">
+                <div>
+                    <div class="pic"><img src="{{ b['image_url'] }}" alt="{{ b['idol_name'] }}"></div>
+                    <h4 style="margin-top:10px;font-size:15px">{{ b['idol_name'] }}</h4>
+                    <span class="badge">{{ b['category'] }}</span>
+                </div>
+                <div class="detail-grid" style="margin-top:0">
+                    <div><small>Customer</small>{{ b['customer_name'] }}</div>
+                    <div><small>Contact</small>{{ b['contact_number'] }}</div>
+                    <div><small>Scheduled Date</small>{{ b['booking_date'] | fdate }}</div>
+                    <div><small>Delivery Method</small>{{ b['delivery_option'] }}</div>
+                    <div><small>Payment</small>{{ b['payment_status'] }}</div>
+                    <div><small>Quantity</small>{{ b['quantity'] }}</div>
+                    <div class="full"><small>Location</small>{{ b['delivery_address'] }}</div>
+                    <div class="grand-total"><span>Total</span><strong>{{ b['total_price'] | inr }}</strong></div>
+                </div>
+            </div>
+            <div class="track-foot">
+                <a href="{{ url_for('booking_status', booking_id=b['booking_id']) }}" class="secondary-btn btn-sm"><i class="bi bi-file-earmark-text"></i> View Full Invoice</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="card-box track-box" style="border-color:#f2c2bf;background:#fdf3f2">
+            <i class="bi bi-exclamation-triangle" style="font-size:36px;color:#b3261e"></i>
+            <h3 style="color:#9b1c14;margin:8px 0">No booking found</h3>
+            <p style="color:var(--muted);font-size:14px">Please double-check your Booking ID or registered phone number.</p>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card with context %}
+{% block title %}My Wishlist | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head">
+        <span class="section-tag">WISHLIST</span>
+        <h1>My <span>Wishlist</span></h1>
+        <p>Idols and add-ons you love, saved for later.</p>
+    </div>
+
+    <div class="product-grid">
+        {% for item in items %}
+            {{ product_card(item) }}
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-heart"></i>
+            <h3>Your wishlist is empty.</h3>
+            <p>Tap the heart on any idol to save it here.</p>
+            <a href="{{ url_for('catalogue') }}" class="primary-btn btn-sm">Browse idols</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</div>
+{% endblock %}

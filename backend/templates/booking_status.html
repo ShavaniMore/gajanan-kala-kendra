@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Booking Confirmed | {{ booking['booking_id'] }}{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="card-box confirm-card">
+        <div class="tick"><i class="bi bi-check-circle-fill"></i></div>
+        <h1>Ganpati Booking Confirmed!</h1>
+        <p>Ganpati Bappa Morya! Your booking has been registered successfully.</p>
+        <div class="id-chip">Booking ID: {{ booking['booking_id'] }}</div>
+        <div>{{ status_badge(booking['status']) }}</div>
+
+        <div class="detail-grid">
+            <div><small>Customer Name</small>{{ booking['customer_name'] }}</div>
+            <div><small>Contact Number</small>{{ booking['contact_number'] }}</div>
+            <div><small>Selected Item</small>{{ booking['idol_name'] }}</div>
+            <div><small>Category / Material</small>{{ booking['category'] }} ({{ booking['material'] }})</div>
+            <div><small>Size</small>{% if booking['idol_size'] > 0 %}{{ booking['idol_size'] }} inches{% else %}Standard accessory{% endif %}</div>
+            <div><small>Quantity</small>{{ booking['quantity'] }}</div>
+            <div><small>Scheduled Date</small>{{ booking['booking_date'] | fdate }}</div>
+            <div><small>Delivery Method</small>{{ booking['delivery_option'] }}</div>
+            {% if booking['branch_name'] %}<div><small>Branch</small>{{ booking['branch_name'] }}</div>{% endif %}
+            <div class="full"><small>Address / Location</small>{{ booking['delivery_address'] }}</div>
+            <div><small>Payment Status</small>{{ booking['payment_status'] }}</div>
+            <div class="grand-total"><span>Total Amount Payable</span><strong>{{ booking['total_price'] | inr }}</strong></div>
+        </div>
+
+        <div class="action-row">
+            {% if booking['receipt_no'] %}<a href="{{ url_for('receipt', receipt_no=booking['receipt_no']) }}" class="secondary-btn"><i class="bi bi-receipt"></i> View Receipt</a>{% endif %}
+            <button onclick="window.print()" class="secondary-btn"><i class="bi bi-printer"></i> Print Invoice</button>
+            <a href="{{ url_for('track_order') }}" class="secondary-btn"><i class="bi bi-truck"></i> Track Booking</a>
+            <a href="{{ url_for('catalogue') }}" class="primary-btn"><i class="bi bi-shop"></i> Continue Shopping</a>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

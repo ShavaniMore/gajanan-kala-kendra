@@ -1,0 +1,89 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}{{ u['username'] }}{% endblock %}
+{% block crumb %}Customers{% endblock %}
+{% block heading %}Customer Profile{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+    <a class="btn-ghost" href="{{ url_for('admin.customers') }}"><i class="bi bi-arrow-left"></i> All customers</a>
+    <a class="btn-ghost" href="{{ url_for('admin.customer_edit', user_id=u['id']) }}"><i class="bi bi-pencil-square"></i> Edit details</a>
+</div>
+
+<div class="ad-grid g-main">
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-person-circle"></i> {{ u['username'] }}</h3>
+                {% if u['is_active'] %}<span class="badge green">Active</span>{% else %}<span class="badge red">Deactivated</span>{% endif %}</div>
+            <div class="ad-card-body">
+                <div class="dl">
+                    <div><small>Email</small>{{ u['email'] }}</div>
+                    <div><small>Phone</small>{{ u['phone'] or '—' }}</div>
+                    <div class="full"><small>Address</small>{{ u['address'] or '—' }}</div>
+                    <div><small>Joined</small>{{ u['created_at'] | fdate }}</div>
+                    <div><small>Lifetime spend</small><strong style="color:var(--deep-red)">{{ spent | inr }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-calendar-check"></i> Booking history <span class="badge grey">{{ orders | length }}</span></h3></div>
+            <div class="table-wrap">
+                <table class="data">
+                    <thead><tr><th>Booking</th><th>Item</th><th class="num">Total</th><th>Payment</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><a href="{{ url_for('admin.booking_detail', booking_id=o['booking_id']) }}"><span class="badge grey">{{ o['booking_id'] }}</span></a><br><small>{{ o['created_at'] | fdate }}</small></td>
+                        <td>{{ o['idol_name'] }} <small>× {{ o['quantity'] }}</small></td>
+                        <td class="num"><strong>{{ o['total_price'] | inr }}</strong></td>
+                        <td><small>{{ o['payment_status'] }}</small></td>
+                        <td>{{ status_badge(o['status']) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row"><td colspan="5">This customer has not booked anything yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if alerts %}
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-bell"></i> Restock requests</h3></div>
+            <div class="table-wrap"><table class="data"><tbody>
+                {% for a in alerts %}<tr><td>{{ a['idol_name'] }}</td><td><span class="badge {{ 'green' if a['status'] == 'Ready' else 'grey' }}">{{ a['status'] }}</span></td><td>{{ a['created_at'] | fdate }}</td></tr>{% endfor %}
+            </tbody></table></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-key"></i> Reset password</h3></div>
+            <div class="ad-card-body">
+                <form class="action-form" action="{{ url_for('admin.customer_password', user_id=u['id']) }}" method="POST" data-confirm="Set a new password for {{ u['username'] }}?">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <input type="password" name="new_password" minlength="6" placeholder="New password (min 6 characters)" required autocomplete="new-password">
+                    <button class="primary-btn btn-block btn-sm" type="submit">Reset password</button>
+                </form>
+                <p class="hint" style="font-size:12px;color:var(--muted);margin-top:10px">Tell the customer their new password personally; they can change it after logging in.</p>
+            </div>
+        </div>
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-shield-exclamation"></i> Account actions</h3></div>
+            <div class="ad-card-body action-form">
+                <form action="{{ url_for('admin.customer_toggle', user_id=u['id']) }}" method="POST" data-confirm="{{ 'Deactivate' if u['is_active'] else 'Re-activate' }} this account?">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="{{ url_for('admin.customer_detail', user_id=u['id']) }}">
+                    <button class="btn-ghost" style="width:100%;padding:11px" type="submit"><i class="bi {{ 'bi-person-slash' if u['is_active'] else 'bi-person-check' }}"></i> {{ 'Deactivate account' if u['is_active'] else 'Re-activate account' }}</button>
+                </form>
+                <form action="{{ url_for('admin.customer_delete', user_id=u['id']) }}" method="POST" data-confirm="Delete {{ u['username'] }} permanently? Their past bookings will be kept.">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <button class="btn-danger" style="width:100%;padding:11px" type="submit"><i class="bi bi-trash3"></i> Delete customer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

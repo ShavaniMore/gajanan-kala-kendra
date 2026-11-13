@@ -1,0 +1,15 @@
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <script>
+    /* apply saved theme before first paint (no white flash) + decide whether to play the intro */
+    (function () {
+        try {
+            var t = localStorage.getItem('gkk-theme');
+            document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+        } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        try {
+            var l = localStorage.getItem('gkk-lang');
+            if (l) document.documentElement.setAttribute('lang', l);
+        } catch (e) {}
+    })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" rel="stylesheet">

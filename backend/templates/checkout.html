@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Checkout | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+        <div>
+            <span class="section-tag">CHECKOUT</span>
+            <h1>Details &amp; <span>Payment</span></h1>
+        </div>
+        <a href="{{ url_for('cart') }}" class="secondary-btn btn-sm"><i class="bi bi-arrow-left"></i> Back to Cart</a>
+    </div>
+
+    <div class="two-col">
+        <div class="card-box idol-summary">
+            <h3>Order Summary</h3>
+            {% for l in items %}
+            <div class="sum-line">
+                <img class="mini-img" src="{{ l.idol['image_url'] }}" alt="">
+                <div><strong>{{ l.idol['name'] }}</strong><br><small>{{ l.qty }} &times; {{ l.idol['price'] | inr }}</small></div>
+                <strong>{{ l.line_total | inr }}</strong>
+            </div>
+            {% endfor %}
+            <div class="total-box" style="margin-top:16px"><span>Total Amount</span><strong>{{ total | inr }}</strong></div>
+        </div>
+
+        <div class="card-box">
+            <h3>Customer &amp; Booking Details</h3>
+            <form action="{{ url_for('checkout') }}" method="POST">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <div class="field">
+                    <label for="customer_name">Full Name *</label>
+                    <input id="customer_name" type="text" name="customer_name" value="{{ form.customer_name }}" required>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="contact_number">Contact Number *</label>
+                        <input id="contact_number" type="tel" name="contact_number" value="{{ form.contact_number }}" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit WhatsApp / phone" required>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email Address</label>
+                        <input id="email" type="email" name="email" value="{{ form.email }}" placeholder="name@example.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="booking_date">Booking / Sthapana Date *</label>
+                        <input id="booking_date" type="date" name="booking_date" value="{{ form.booking_date }}" min="{{ today }}" required>
+                    </div>
+                    <div class="field">
+                        <label for="delivery_option">Pickup / Delivery Option *</label>
+                        <select id="delivery_option" name="delivery_option" required>
+                            <option value="Store Pickup" {{ 'selected' if form.delivery_option == 'Store Pickup' }}>Store Pickup (visit workshop)</option>
+                            <option value="Home Delivery" {{ 'selected' if form.delivery_option == 'Home Delivery' }}>Home Delivery (safe transport)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="delivery_address" id="addressLabel">Delivery Address / Notes</label>
+                    <textarea id="delivery_address" name="delivery_address" rows="2" placeholder="Enter delivery address or pickup note">{{ form.delivery_address }}</textarea>
+                </div>
+
+                {% set pay_total = total %}
+                {% include "_payment.html" %}
+
+                <button type="submit" class="primary-btn btn-block" style="padding:15px;font-size:15px">
+                    <i class="bi bi-lock"></i> Pay Now
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

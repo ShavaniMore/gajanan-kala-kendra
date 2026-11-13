@@ -1,0 +1,19 @@
+{# floating AI assistant (included from base.html) #}
+<div class="ai-box" id="aiBox" data-csrf="{{ csrf_token() }}" data-hello="Namaste! I am your AI assistant. Ask me about idols, prices, booking, delivery or tracking.">
+    <div class="ai-head">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="">
+        <div><strong>AI Assistant</strong><small>Chatbot</small></div>
+        <button type="button" id="aiClose" aria-label="Close chat">&times;</button>
+    </div>
+    <div class="ai-log" id="aiLog" aria-live="polite"></div>
+    <div class="ai-chips">
+        <button type="button" data-ai-q="Which eco-friendly idols do you have?">Eco-friendly idols</button>
+        <button type="button" data-ai-q="How do I book and pay?">How to book</button>
+        <button type="button" data-ai-q="How can I track my order?">Track order</button>
+    </div>
+    <form class="ai-form" id="aiForm" autocomplete="off">
+        <input id="aiInput" type="text" maxlength="400" placeholder="Type your question..." required>
+        <button type="submit" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+    </form>
+</div>
+<button type="button" class="ai-toggle" id="aiToggle" aria-label="Open AI assistant"><i class="bi bi-chat-dots-fill"></i></button>

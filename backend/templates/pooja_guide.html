@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Pooja Guide | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head center">
+        <span class="section-tag">GANESH CHATURTHI GUIDE</span>
+        <h1>Ganpati <span>Pooja Guide</span></h1>
+        <p>Useful information about Ganpati Sthapana, pooja items, aarti and Visarjan to help you welcome Bappa with devotion.</p>
+    </div>
+
+    <div class="guide-grid">
+        <div class="card-box">
+            <h3><i class="bi bi-calendar-heart"></i> Sthapana Muhurat</h3>
+            <div class="kv"><span>Festival</span><strong>{{ festival_name }}</strong></div>
+            <div class="kv"><span>Date</span><strong>{{ festival_label }}</strong></div>
+            <div class="kv"><span>Occasion</span><strong>Ganpati Sthapana</strong></div>
+            <div class="note" style="margin:14px 0 0"><strong>Important:</strong> Muhurat timings vary by location and year. Please check a reliable local Panchang before performing the Sthapana.</div>
+        </div>
+
+        <div class="card-box">
+            <h3><i class="bi bi-basket3"></i> Pooja Items</h3>
+            <ul class="guide-list two">
+                {% for item in ['Ganpati idol', 'Durva grass', 'Flowers', 'Modak / Naivedya', 'Roli / Kumkum', 'Akshata (rice)', 'Incense sticks', 'Diya', 'Camphor', 'Coconut', 'Fruits'] %}
+                <li><i class="bi bi-check2-circle"></i> {{ item }}</li>
+                {% endfor %}
+            </ul>
+            <a class="link-arrow" href="{{ url_for('catalogue', category='Add-Ons') }}" style="margin-top:12px">Shop shringar add-ons <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="card-box">
+            <h3><i class="bi bi-list-ol"></i> Basic Pooja Steps</h3>
+            <ol class="guide-steps">
+                <li>Clean and prepare the pooja area.</li>
+                <li>Place the Ganpati idol respectfully.</li>
+                <li>Perform the Sthapana and invoke Lord Ganesha.</li>
+                <li>Offer flowers, Durva and Naivedya.</li>
+                <li>Perform the Ganpati Aarti.</li>
+                <li>Distribute Prasad among family members.</li>
+            </ol>
+        </div>
+
+        <div class="card-box">
+            <h3><i class="bi bi-music-note-beamed"></i> Aarti</h3>
+            <p class="guide-text">Ganpati Aarti can be performed according to your family's traditional practice.</p>
+            <div class="note" style="margin:14px 0 0"><strong>Tip:</strong> Keep all required pooja items ready before starting the Aarti.</div>
+
+            <h3 style="margin-top:26px"><i class="bi bi-water"></i> Visarjan Information</h3>
+            <p class="guide-text">Ganpati Visarjan marks the conclusion of the Ganpati celebration. Follow local authority guidelines and designated immersion locations.</p>
+        </div>
+    </div>
+
+    <div class="card-box" style="margin-top:24px">
+        <h3><i class="bi bi-stars"></i> Festival Tips</h3>
+        <ul class="guide-list two">
+            <li><i class="bi bi-check2-circle"></i> Keep the pooja area clean.</li>
+            <li><i class="bi bi-check2-circle"></i> Prepare pooja materials in advance.</li>
+            <li><i class="bi bi-check2-circle"></i> Prefer environmentally responsible practices (eco-friendly clay idols).</li>
+            <li><i class="bi bi-check2-circle"></i> Follow local festival and immersion guidelines.</li>
+        </ul>
+        <a class="primary-btn" href="{{ url_for('catalogue', category='Ecofriendly') }}" style="margin-top:14px"><i class="bi bi-flower1"></i> Explore eco-friendly idols</a>
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}My Cart | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head">
+        <span class="section-tag">MY CART</span>
+        <h1>Order <span>Summary</span></h1>
+        <p>Review the idols you have selected before paying.</p>
+    </div>
+
+    {% if items %}
+    <div class="card-box table-card">
+        <h3><i class="bi bi-bag-check"></i> Selected items</h3>
+        <div class="table-wrap">
+            <table class="data">
+                <thead><tr><th>Item</th><th>Price</th><th>Quantity</th><th>Subtotal</th><th></th></tr></thead>
+                <tbody>
+                {% for l in items %}
+                <tr>
+                    <td><img class="mini-img" src="{{ l.idol['image_url'] }}" alt=""><strong>{{ l.idol['name'] }}</strong><br><small>{{ l.idol['category'] }}{% if l.idol['size'] > 0 %} &middot; {{ l.idol['size'] }} inches{% endif %}</small></td>
+                    <td>{{ l.idol['price'] | inr }}</td>
+                    <td>
+                        <form action="{{ url_for('cart_update', idol_id=l.idol['id']) }}" method="POST" class="qty-form">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="number" name="quantity" value="{{ l.qty }}" min="1" max="{{ [l.idol['stock_count'], 10] | min }}" onchange="this.form.submit()">
+                        </form>
+                    </td>
+                    <td><strong style="color:var(--deep-red)">{{ l.line_total | inr }}</strong></td>
+                    <td>
+                        <form action="{{ url_for('cart_remove', idol_id=l.idol['id']) }}" method="POST">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button class="secondary-btn btn-sm" type="submit"><i class="bi bi-trash"></i> Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="order-total">
+            <div class="total-box"><span>Total Price</span><strong>{{ total | inr }}</strong></div>
+            <div class="action-row" style="justify-content:flex-end;margin-top:0">
+                <a href="{{ url_for('catalogue') }}" class="secondary-btn"><i class="bi bi-arrow-left"></i> Continue Shopping</a>
+                <a href="{{ url_for('checkout') }}" class="primary-btn"><i class="bi bi-credit-card"></i> Proceed to Pay</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-cart3"></i>
+        <h3>Your cart is empty.</h3>
+        <a href="{{ url_for('catalogue') }}" class="primary-btn btn-sm">Browse idols</a>
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

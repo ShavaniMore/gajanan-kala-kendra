@@ -1,0 +1,145 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Dashboard{% endblock %}
+{% block crumb %}Overview{% endblock %}
+{% block heading %}Workshop Dashboard{% endblock %}
+
+{% block content %}
+{% if stats.out_of_stock or stats.low_stock %}
+<div class="alert-note">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>Stock attention needed: <strong>{{ stats.out_of_stock }}</strong> item(s) out of stock and <strong>{{ stats.low_stock }}</strong> running low.
+    <a href="{{ url_for('admin.stock', show='low') }}" style="text-decoration:underline">Open stock management</a></span>
+</div>
+{% endif %}
+
+<div class="ad-grid g4">
+    <a class="kpi red" href="{{ url_for('admin.bookings') }}">
+        <span class="ico"><i class="bi bi-calendar-check"></i></span>
+        <div><small>Total Bookings</small><strong>{{ stats.bookings }}</strong><em>{{ stats.new_orders }} new to confirm</em></div>
+    </a>
+    <a class="kpi green" href="{{ url_for('admin.reports') }}">
+        <span class="ico"><i class="bi bi-currency-rupee"></i></span>
+        <div><small>Revenue (excl. cancelled)</small><strong>{{ stats.revenue | inr }}</strong><em>{{ stats.pending_balance | inr }} balance to collect</em></div>
+    </a>
+    <a class="kpi" href="{{ url_for('admin.products') }}">
+        <span class="ico"><i class="bi bi-bag-heart"></i></span>
+        <div><small>Catalogue Items</small><strong>{{ stats['items'] }}</strong><em>{{ stats.out_of_stock }} out of stock</em></div>
+    </a>
+    <a class="kpi dark" href="{{ url_for('admin.customers') }}">
+        <span class="ico"><i class="bi bi-people"></i></span>
+        <div><small>Registered Devotees</small><strong>{{ stats.customers }}</strong><em>customer accounts</em></div>
+    </a>
+</div>
+
+<div class="ad-grid g4">
+    <a class="kpi gold" href="{{ url_for('admin.stock', show='low') }}">
+        <span class="ico"><i class="bi bi-exclamation-diamond"></i></span>
+        <div><small>Low Stock Items</small><strong>{{ stats.low_stock }}</strong><em>at or below their limit</em></div>
+    </a>
+    <a class="kpi" href="{{ url_for('admin.restock') }}">
+        <span class="ico"><i class="bi bi-bell"></i></span>
+        <div><small>Restock Requests</small><strong>{{ stats.alerts }}</strong><em>customers waiting</em></div>
+    </a>
+    <a class="kpi gold" href="{{ url_for('admin.reviews') }}">
+        <span class="ico"><i class="bi bi-star-fill"></i></span>
+        <div><small>Reviews</small><strong>{{ stats.reviews }}</strong><em>average {{ '%.1f' | format(stats.avg_rating | float) }} / 5</em></div>
+    </a>
+    <a class="kpi green" href="{{ url_for('admin.branches') }}">
+        <span class="ico"><i class="bi bi-shop-window"></i></span>
+        <div><small>Active Branches</small><strong>{{ stats.branches }}</strong><em>selling right now</em></div>
+    </a>
+</div>
+
+<div class="ad-grid g-main">
+    <div class="ad-card">
+        <div class="ad-card-head">
+            <h3><i class="bi bi-list-check"></i> Latest Bookings</h3>
+            <a class="link-arrow" href="{{ url_for('admin.bookings') }}">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="table-wrap">
+            <table class="data">
+                <thead><tr><th>Booking</th><th>Customer</th><th>Item</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                {% for b in recent %}
+                <tr>
+                    <td><span class="badge grey">{{ b['booking_id'] }}</span><br><small>{{ b['created_at'] | fdate }}</small></td>
+                    <td><strong>{{ b['customer_name'] }}</strong><br><small>{{ b['contact_number'] }}</small></td>
+                    <td>{{ b['idol_name'] }} <small>× {{ b['quantity'] }}</small></td>
+                    <td class="num"><strong style="color:var(--deep-red)">{{ b['total_price'] | inr }}</strong></td>
+                    <td>{{ status_badge(b['status']) }}</td>
+                    <td><a class="icon-btn" href="{{ url_for('admin.booking_detail', booking_id=b['booking_id']) }}" title="Open"><i class="bi bi-eye"></i></a></td>
+                </tr>
+                {% else %}
+                <tr class="empty-row"><td colspan="6">No bookings yet. They will appear here as customers book.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-pie-chart"></i> Orders by Status</h3></div>
+            <div class="ad-card-body bars">
+                {% for label, count in status_rows %}
+                <div class="bar-row" style="grid-template-columns:120px minmax(0,1fr) 36px">
+                    <span class="lbl">{{ label }}</span>
+                    <span class="track"><span class="fill {{ {'Confirmed':'','Ready for Pickup':'grey','Out for Delivery':'grey','Delivered':'green','Cancelled':'red'}[label] }}" style="width:{{ (count * 100 / status_max) | round | int }}%;display:block"></span></span>
+                    <span class="val">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-trophy"></i> Best Sellers</h3></div>
+            <div class="ad-card-body bars">
+                {% for t in top_items %}
+                <div class="bar-row" style="grid-template-columns:140px minmax(0,1fr) 36px">
+                    <span class="lbl" title="{{ t['name'] }}">{{ t['name'] }}</span>
+                    <span class="track"><span class="fill" style="width:{{ (t['units'] * 100 / top_max) | round | int }}%;display:block"></span></span>
+                    <span class="val">{{ t['units'] }}</span>
+                </div>
+                {% else %}
+                <p class="muted" style="font-size:13px">Sales will show here once bookings come in.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <h3><i class="bi bi-exclamation-diamond"></i> Needs Restocking</h3>
+        <a class="link-arrow" href="{{ url_for('admin.stock') }}">Manage stock <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Item</th><th>Category</th><th class="num">In stock</th><th class="num">Limit</th><th>Status</th><th>Quick update</th></tr></thead>
+            <tbody>
+            {% for i in low_items %}
+            <tr>
+                <td><div class="thumb-cell"><img src="{{ i['image_url'] }}" alt=""><strong>{{ i['name'] }}</strong></div></td>
+                <td>{{ i['category'] }}</td>
+                <td class="num"><strong>{{ i['stock_count'] }}</strong></td>
+                <td class="num">{{ i['low_stock_limit'] }}</td>
+                <td>{% if i['stock_count'] <= 0 %}<span class="badge red">Out of Stock</span>{% else %}<span class="badge amber">Low Stock</span>{% endif %}</td>
+                <td>
+                    <form class="mini-form" action="{{ url_for('admin.stock_update', idol_id=i['id']) }}" method="POST">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <input type="hidden" name="mode" value="add">
+                        <input type="hidden" name="next" value="{{ url_for('admin.dashboard') }}">
+                        <input type="number" name="stock_count" value="10" required>
+                        <button type="submit">Add stock</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="6"><i class="bi bi-check-circle" style="color:#2e9e4a"></i> Everything is well stocked.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

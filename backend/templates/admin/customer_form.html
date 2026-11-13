@@ -1,0 +1,24 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Edit {{ u['username'] }}{% endblock %}
+{% block crumb %}Customers{% endblock %}
+{% block heading %}Edit Customer{% endblock %}
+
+{% block content %}
+<div class="ad-card" style="max-width:760px">
+    <div class="ad-card-head"><h3><i class="bi bi-pencil-square"></i> {{ u['username'] }}</h3>
+        <a class="btn-ghost" href="{{ url_for('admin.customer_detail', user_id=u['id']) }}"><i class="bi bi-arrow-left"></i> Back</a></div>
+    <form class="ad-form" method="POST" action="{{ url_for('admin.customer_edit', user_id=u['id']) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="fg2">
+            <div class="field"><label for="username">Name *</label><input id="username" name="username" value="{{ form.username }}" required></div>
+            <div class="field"><label for="email">Email *</label><input id="email" type="email" name="email" value="{{ form.email }}" required></div>
+        </div>
+        <div class="field"><label for="phone">Phone (10 digits)</label><input id="phone" name="phone" value="{{ form.phone }}" pattern="[0-9]{10}" maxlength="10"></div>
+        <div class="field"><label for="address">Address</label><textarea id="address" name="address" rows="3">{{ form.address }}</textarea></div>
+        <div class="form-actions">
+            <button class="primary-btn" type="submit"><i class="bi bi-check-lg"></i> Save changes</button>
+            <a class="secondary-btn" href="{{ url_for('admin.customer_detail', user_id=u['id']) }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

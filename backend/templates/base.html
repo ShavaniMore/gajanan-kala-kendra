@@ -1,0 +1,148 @@
+{% from "_macros.html" import flashes %}
+{% from "_tools.html" import theme_btn, lang_select %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gajanan Kala Kendra | Ganpati Shop{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    {% include "_head_common.html" %}
+    <script>
+    /* play the intro once per browser session (skipped if the visitor prefers reduced motion) */
+    try {
+        if (!sessionStorage.getItem('gkk-intro') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches))
+            document.documentElement.classList.add('splash-on');
+    } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body data-page="{{ request.endpoint }}" class="has-side">
+    {% set ep = request.endpoint %}
+
+    {# ===== intro: Ganpati Bappa fills with colour from the bottom, then flowers shower ===== #}
+    <div class="splash" id="splash" aria-hidden="true">
+        <div class="splash-stage">
+            <div class="splash-ganesh">
+                <img class="g-base" src="{{ url_for('static', filename='images/logo.png') }}" alt="">
+                <img class="g-color" src="{{ url_for('static', filename='images/logo.png') }}" alt="Ganpati Bappa">
+                <span class="g-edge"></span>
+            </div>
+            <p class="splash-text">Ganpati Bappa Morya 🙏</p>
+        </div>
+        <div class="petals" id="petals"></div>
+        <button type="button" class="splash-skip" id="splashSkip">Skip</button>
+    </div>
+
+    {# mobile top bar #}
+    <header class="site-bar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open navigation"><i class="bi bi-list"></i></button>
+        <a class="brand" href="{{ url_for('home') }}">
+            <img class="brand-logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Gajanan Kala Kendra logo">
+            <span>Gajanan Kala <span class="brand-highlight">Kendra</span></span>
+        </a>
+        {{ theme_btn() }}
+    </header>
+
+    {# ===== LEFT SIDE NAVIGATION (same style as the admin panel) ===== #}
+    <aside class="site-side" id="siteSide">
+        <a class="side-brand" href="{{ url_for('home') }}">
+            <img class="brand-logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Gajanan Kala Kendra logo">
+            <span>Gajanan Kala <b>Kendra</b><small>Ganpati Shop</small></span>
+        </a>
+
+        <nav class="nav-menu" id="navMenu">
+            <div class="sd-group">Menu</div>
+            <a class="sd-link {{ 'active' if ep == 'home' }}" href="{{ url_for('home') }}"><i class="bi bi-house-door"></i><span>Home</span></a>
+            <a class="sd-link {{ 'active' if ep in ('catalogue', 'book_idol') }}" href="{{ url_for('catalogue') }}"><i class="bi bi-bag-heart"></i><span>Shop</span></a>
+            <a class="sd-link {{ 'active' if ep in ('track_order', 'booking_status') }}" href="{{ url_for('track_order') }}"><i class="bi bi-truck"></i><span>Track Order</span></a>
+            {% if session.get('user_id') and session.get('role') != 'admin' %}
+            <a class="sd-link {{ 'active' if ep == 'my_orders' }}" href="{{ url_for('my_orders') }}"><i class="bi bi-receipt"></i><span>My Orders</span></a>
+            {% endif %}
+            <a class="sd-link {{ 'active' if ep == 'pooja_guide' }}" href="{{ url_for('pooja_guide') }}"><i class="bi bi-book"></i><span>Pooja Guide</span></a>
+            <a class="sd-link {{ 'active' if ep == 'reviews' }}" href="{{ url_for('reviews') }}"><i class="bi bi-chat-square-heart"></i><span>Reviews</span></a>
+            <a class="sd-link" href="{{ url_for('home') }}#about"><i class="bi bi-info-circle"></i><span>About Us</span></a>
+            <a class="sd-link" href="{{ url_for('home') }}#contact"><i class="bi bi-telephone"></i><span>Contact</span></a>
+
+            <div class="sd-group">My Account</div>
+            {% if session.get('user_id') and session.get('role') == 'admin' %}
+                <a class="sd-link nav-admin {{ 'active' if ep and ep.startswith('admin.') }}" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i><span>Admin</span></a>
+            {% endif %}
+            <a class="sd-link nav-icon {{ 'active' if ep == 'wishlist' }}" href="{{ url_for('wishlist') }}" title="My Wishlist"><i class="bi bi-heart"></i><span>Wishlist</span> <em class="sd-badge nav-count" data-wish-count {{ 'hidden' if not wish_count }}>{{ wish_count }}</em></a>
+            <a class="sd-link nav-icon {{ 'active' if ep in ('cart', 'checkout') }}" href="{{ url_for('cart') }}" title="My Cart"><i class="bi bi-cart3"></i><span>My Cart</span> <em class="sd-badge nav-count" data-cart-count {{ 'hidden' if not cart_count }}>{{ cart_count }}</em></a>
+        </nav>
+
+        <div class="side-foot">
+            <div class="side-tools">
+                {{ theme_btn() }}
+                {{ lang_select() }}
+            </div>
+            {% if session.get('user_id') %}
+                <span class="nav-user"><i class="bi bi-person-circle"></i> {{ session.get('username') }}</span>
+                <a class="login-btn" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            {% else %}
+                <div class="side-auth">
+                    <a class="login-btn outline" href="{{ url_for('register') }}">Register</a>
+                    <a class="login-btn" href="{{ url_for('login') }}">Login</a>
+                </div>
+            {% endif %}
+        </div>
+    </aside>
+    <div class="ad-scrim" id="siteScrim"></div>
+
+    <div class="site-wrap">
+    <div class="flash-wrap">{{ flashes() }}</div>
+    <div class="toast-box" id="toastBox" aria-live="polite"></div>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <a class="brand" href="{{ url_for('home') }}"><img class="brand-logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Gajanan Kala Kendra logo"><span>Gajanan Kala <span class="brand-highlight">Kendra</span></span></a>
+                <p>Handcrafted Ganpati idols with complete shringar add-ons, delivered safely with devotion.</p>
+            </div>
+            <div>
+                <h4>Categories</h4>
+                {% for value, label, _ in categories %}
+                    <a href="{{ url_for('catalogue', category=value) }}">{{ label }}</a>
+                {% endfor %}
+            </div>
+            <div>
+                <h4>Account &amp; Help</h4>
+                <a href="{{ url_for('login') }}">Devotee Login</a>
+                <a href="{{ url_for('login', role='admin') }}">Admin Login</a>
+                <a href="{{ url_for('pooja_guide') }}">Pooja Guide</a>
+                <a href="{{ url_for('register') }}">Create Account</a>
+                <a href="{{ url_for('forgot_password') }}">Forgot Password</a>
+                <a href="{{ url_for('track_order') }}">Track Booking</a>
+            </div>
+            <div>
+                <h4>Workshop Contact</h4>
+                <a href="tel:{{ shop.phone | replace(' ', '') }}"><i class="bi bi-telephone"></i> {{ shop.phone }}</a>
+                <a href="{{ shop.maps }}" target="_blank" rel="noopener" title="Open in Google Maps"><i class="bi bi-geo-alt"></i> {{ shop.address }}</a>
+                <a href="{{ shop.email_link }}" target="_blank" rel="noopener" title="Send us an email"><i class="bi bi-envelope"></i> {{ shop.email }}</a>
+                <a href="https://wa.me/{{ shop.whatsapp }}?text=Namaste%2C%20I%20want%20to%20know%20about%20Ganpati%20idols" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp us</a>
+                <a href="{{ shop.instagram }}" target="_blank" rel="noopener"><i class="bi bi-instagram"></i> Instagram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container footer-inner">
+                <span>© {{ current_year }} Gajanan Kala Kendra</span>
+                <span>Ganpati Bappa Morya 🙏</span>
+            </div>
+        </div>
+    </footer>
+    </div>{# /site-wrap #}
+    {% include "_assistant.html" %}
+
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

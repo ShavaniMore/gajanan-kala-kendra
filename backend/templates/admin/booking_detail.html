@@ -1,0 +1,95 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Booking {{ b['booking_id'] }}{% endblock %}
+{% block crumb %}Bookings{% endblock %}
+{% block heading %}Booking Details{% endblock %}
+
+{% block content %}
+{% set flow = ['Confirmed', 'Ready for Pickup' if b['delivery_option'] == 'Store Pickup' else 'Out for Delivery', 'Delivered'] %}
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+    <a class="btn-ghost" href="{{ url_for('admin.bookings') }}"><i class="bi bi-arrow-left"></i> All bookings</a>
+    <a class="btn-ghost" href="{{ url_for('admin.booking_invoice', booking_id=b['booking_id']) }}" target="_blank"><i class="bi bi-printer"></i> Print invoice</a>
+</div>
+
+<div class="ad-grid g-main">
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head">
+                <h3><i class="bi bi-receipt"></i> {{ b['booking_id'] }}</h3>
+                <div>{{ status_badge(b['status']) }}</div>
+            </div>
+            <div class="ad-card-body">
+                {% if b['status'] != 'Cancelled' %}
+                <div class="steps" style="padding:0 0 22px">
+                    {% set idx = flow.index(b['status']) if b['status'] in flow else (1 if b['status'] in ('Ready for Pickup','Out for Delivery') else 0) %}
+                    {% for s in flow %}
+                    <div class="step {{ 'done' if loop.index0 <= idx }} {{ 'now' if loop.index0 == idx }}"><div class="dot"><i class="bi bi-check-lg"></i></div>{{ s }}</div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert-note" style="margin-bottom:20px"><i class="bi bi-x-circle-fill"></i> This booking was cancelled and its stock was returned to the shop.</div>
+                {% endif %}
+
+                <div class="item-card" style="margin-bottom:22px">
+                    <img src="{{ b['image_url'] }}" alt="">
+                    <div>
+                        <h4>{{ b['idol_name'] }}</h4>
+                        <span class="badge">{{ b['category'] }}</span>
+                        <p class="muted" style="font-size:13px;margin-top:6px">{{ b['material'] }}{% if b['idol_size'] > 0 %} · {{ b['idol_size'] }} inches{% endif %} · {{ b['design_type'] }}</p>
+                    </div>
+                </div>
+
+                <div class="dl">
+                    <div><small>Customer</small>{{ b['customer_name'] }}{% if customer %} <a class="link-arrow" href="{{ url_for('admin.customer_detail', user_id=customer['id']) }}" style="font-size:12px">(account)</a>{% endif %}</div>
+                    <div><small>Contact</small>{{ b['contact_number'] }}{% if b['email'] %}<br><span class="muted">{{ b['email'] }}</span>{% endif %}</div>
+                    <div><small>Quantity</small>{{ b['quantity'] }} × {{ b['unit_price'] | inr }}</div>
+                    <div><small>Event / Sthapana date</small>{{ b['booking_date'] | fdate }}</div>
+                    <div><small>Delivery method</small>{{ b['delivery_option'] }}</div>
+                    <div><small>Fulfilling branch</small>{% if b['branch_name'] %}{{ b['branch_name'] }} ({{ b['branch_city'] }}){% else %}<span class="muted">Not assigned</span>{% endif %}</div>
+                    <div class="full"><small>Address / pickup note</small>{{ b['delivery_address'] }}</div>
+                    <div><small>Booked on</small>{{ b['created_at'] | fdatetime }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="side-stack">
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-wallet2"></i> Payment</h3></div>
+            <div class="ad-card-body">
+                <div class="money-line"><span>Order total</span><strong>{{ b['total_price'] | inr }}</strong></div>
+                <div class="money-line"><span>Collected</span><strong style="color:#1f6b2c">{{ paid | inr }}</strong></div>
+                <div class="money-line"><span>Balance due</span><strong style="color:var(--deep-red)">{{ (balance if b['status'] != 'Cancelled' and b['payment_status'] != 'Refunded' else 0) | inr }}</strong></div>
+                <form class="action-form" style="margin-top:14px" action="{{ url_for('admin.booking_payment_update', booking_id=b['booking_id']) }}" method="POST">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <label class="lbl">Payment status</label>
+                    <select name="payment_status">{% for p in payment_statuses %}<option value="{{ p }}" {{ 'selected' if b['payment_status'] == p }}>{{ p }}</option>{% endfor %}</select>
+                    <button class="primary-btn btn-block btn-sm" type="submit"><i class="bi bi-check-lg"></i> Update payment</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="ad-card">
+            <div class="ad-card-head"><h3><i class="bi bi-truck"></i> Order status</h3></div>
+            <div class="ad-card-body">
+                {% if b['status'] == 'Cancelled' %}
+                    <p class="muted" style="font-size:13px">Cancelled bookings cannot be re-opened.</p>
+                {% else %}
+                <form class="action-form" action="{{ url_for('admin.booking_status_update', booking_id=b['booking_id']) }}" method="POST">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <label class="lbl">Set status</label>
+                    <select name="status">{% for s in booking_statuses %}<option value="{{ s }}" {{ 'selected' if b['status'] == s }}>{{ s }}</option>{% endfor %}</select>
+                    <button class="primary-btn btn-block btn-sm" type="submit"><i class="bi bi-check-lg"></i> Update status</button>
+                </form>
+                <form action="{{ url_for('admin.booking_status_update', booking_id=b['booking_id']) }}" method="POST" style="margin-top:10px"
+                      data-confirm="Cancel this booking? The stock will be returned to the shop and this cannot be undone.">
+                    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="Cancelled">
+                    <button class="btn-danger" style="width:100%;padding:11px" type="submit"><i class="bi bi-x-circle"></i> Cancel booking</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

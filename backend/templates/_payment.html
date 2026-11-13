@@ -1,0 +1,51 @@
+{# Demo payment section: used by booking.html and checkout.html. Nothing is charged; card details are never stored. #}
+{% set pt = request.form.get('pay_type', 'full') %}
+{% set pm = request.form.get('pay_method', 'upi') %}
+<div class="pay-box" id="payBox" {% if pay_total is defined %}data-total="{{ pay_total }}"{% endif %}>
+    <h4><i class="bi bi-credit-card-2-front"></i> Payment</h4>
+    <div class="note" style="margin-bottom:14px"><i class="bi bi-info-circle"></i> This is a <strong>demo payment</strong> &mdash; no real money is charged and card details are not saved.</div>
+
+    <div class="pay-label">1. How much would you like to pay now?</div>
+    <div class="pay-options two">
+        <label class="pay-opt"><input type="radio" name="pay_type" value="advance" {{ 'checked' if pt == 'advance' }}>
+            <span><strong>50% Advance</strong><small>Pay half now, rest at pickup / delivery</small><em data-pay-amount="advance"></em></span></label>
+        <label class="pay-opt"><input type="radio" name="pay_type" value="full" {{ 'checked' if pt != 'advance' }}>
+            <span><strong>Full Payment</strong><small>Pay the complete amount now</small><em data-pay-amount="full"></em></span></label>
+    </div>
+
+    <div class="pay-label">2. Choose a payment method</div>
+    <div class="pay-options four">
+        {% for key, label, icon in [('upi','UPI','bi-phone'),('netbanking','Net Banking','bi-bank'),('card','Cards','bi-credit-card'),('cash','Cash','bi-cash-coin')] %}
+        <label class="pay-opt compact"><input type="radio" name="pay_method" value="{{ key }}" {{ 'checked' if pm == key }}>
+            <span><i class="bi {{ icon }}"></i><strong>{{ label }}</strong></span></label>
+        {% endfor %}
+    </div>
+
+    <div class="pay-panel" data-method="upi">
+        <div class="field"><label for="pay_upi">UPI ID</label>
+            <input id="pay_upi" type="text" name="pay_upi" value="{{ request.form.get('pay_upi', '') }}" placeholder="yourname@upi"></div>
+    </div>
+    <div class="pay-panel" data-method="netbanking" hidden>
+        <div class="field"><label for="pay_bank">Select your bank</label>
+            <select id="pay_bank" name="pay_bank"><option value="">-- Choose bank --</option>
+                {% for b in demo_banks %}<option {{ 'selected' if request.form.get('pay_bank') == b }}>{{ b }}</option>{% endfor %}
+            </select></div>
+    </div>
+    <div class="pay-panel" data-method="card" hidden>
+        <div class="field"><label for="pay_card">Card number</label>
+            <input id="pay_card" type="text" name="pay_card" inputmode="numeric" maxlength="23" autocomplete="off" placeholder="1234 5678 9012 3456"></div>
+        <div class="field"><label for="pay_card_name">Name on card</label>
+            <input id="pay_card_name" type="text" name="pay_card_name" autocomplete="off" placeholder="As printed on the card"></div>
+        <div class="form-row">
+            <div class="field"><label for="pay_exp">Expiry (MM/YY)</label>
+                <input id="pay_exp" type="text" name="pay_exp" maxlength="5" autocomplete="off" placeholder="08/29"></div>
+            <div class="field"><label for="pay_cvv">CVV</label>
+                <input id="pay_cvv" type="password" name="pay_cvv" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="***"></div>
+        </div>
+    </div>
+    <div class="pay-panel" data-method="cash" hidden>
+        <div class="note" style="margin-bottom:0">Pay in cash at the workshop when you pick up your Bappa. Your booking is confirmed now and the receipt shows the amount due at the counter.</div>
+    </div>
+
+    <div class="total-box pay-now-box"><span>Payable now</span><strong id="payNowAmount">&#8377;0</strong></div>
+</div>

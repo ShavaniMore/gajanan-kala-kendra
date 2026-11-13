@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_macros.html" import product_card, recently_viewed_section with context %}
+{% block title %}Shop Idols | Gajanan Kala Kendra{% endblock %}
+
+{% block content %}
+<div class="page">
+<div class="container">
+    <div class="page-head">
+        <span class="section-tag">CATALOGUE</span>
+        <h1>Our <span>Ganpati</span> Collection</h1>
+        <p>Ready, eco-friendly clay and PoP idols, plus shringar add-ons for Bappa.</p>
+    </div>
+
+    <div class="shop-layout">
+        <aside class="filter-panel">
+            <div class="card-box">
+                <div class="filter-head">
+                    <h3>Filter &amp; Refine</h3>
+                    <a href="{{ url_for('catalogue') }}">Clear all</a>
+                </div>
+                <form class="filter-form" action="{{ url_for('catalogue') }}" method="GET">
+                    <input type="hidden" name="q" value="{{ search_query }}">
+
+                    <div class="filter-title">Category</div>
+                    <label class="radio-row"><input type="radio" name="category" value="all" data-autosubmit {{ 'checked' if current_category == 'all' }}> All Categories</label>
+                    {% for value, label, _ in categories %}
+                    <label class="radio-row"><input type="radio" name="category" value="{{ value }}" data-autosubmit {{ 'checked' if current_category == value }}> {{ label }}</label>
+                    {% endfor %}
+
+                    <div class="filter-title">Idol Size (inches)</div>
+                    <select name="size" data-autosubmit>
+                        <option value="0">All Sizes</option>
+                        {% for s, note in [(7,' (Bal Roop)'),(10,''),(12,''),(16,''),(18,''),(21,' (Grand Idol)'),(22,''),(24,' (Majestic)')] %}
+                        <option value="{{ s }}" {{ 'selected' if selected_size == s }}>{{ s }} inches{{ note }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="filter-title">Price Range (₹)</div>
+                    <div class="two">
+                        <input type="number" min="0" name="min_price" value="{{ '' if min_price is none else min_price | int }}" placeholder="Min">
+                        <input type="number" min="0" name="max_price" value="{{ '' if max_price is none else max_price | int }}" placeholder="Max">
+                    </div>
+
+                    <div class="filter-title">Sort By</div>
+                    <select name="sort">
+                        {% for val, label in [('default','Featured'),('price_low_high','Price: Low to High'),('price_high_low','Price: High to Low'),('size_small_large','Size: Small to Large'),('size_large_small','Size: Large to Small'),('rating','Highest Rated')] %}
+                        <option value="{{ val }}" {{ 'selected' if current_sort == val }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="primary-btn btn-block btn-sm" style="margin-top:18px"><i class="bi bi-check2"></i> Apply Filters</button>
+                </form>
+            </div>
+        </aside>
+
+        <section>
+            <form class="shop-search" action="{{ url_for('catalogue') }}" method="GET">
+                {% if current_category != 'all' %}<input type="hidden" name="category" value="{{ current_category }}" style="display:none">{% endif %}
+                <div class="input-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Ready Ganpati, Eco-friendly, PoP, Dhoti, Pheta...">
+                </div>
+                <button class="primary-btn" type="submit">Search</button>
+            </form>
+
+            <div class="result-bar">
+                <span>Showing <strong>{{ idols | length }}</strong> item{{ '' if idols | length == 1 else 's' }}</span>
+                {% if current_category != 'all' %}<span class="badge">{{ current_category }}</span>{% endif %}
+                {% if search_query %}<span>for <strong>"{{ search_query }}"</strong></span>{% endif %}
+            </div>
+
+            <div class="product-grid">
+                {% for item in idols %}
+                    {{ product_card(item) }}
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-box-seam"></i>
+                    <h3>No items match your filters.</h3>
+                    <a href="{{ url_for('catalogue') }}" class="primary-btn btn-sm">Reset Filters</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+</div>
+
+{{ recently_viewed_section(recently_viewed) }}
+{% endblock %}

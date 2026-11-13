@@ -1,0 +1,14 @@
+{# theme + language switchers, used in the shop sidebar, admin top bar and login pages #}
+{% macro theme_btn() %}
+<button type="button" class="tool-btn" data-theme-toggle title="Dark / Light mode" aria-label="Toggle dark or light mode"><i class="bi bi-moon-stars-fill"></i></button>
+{% endmacro %}
+{% macro lang_select() %}
+<label class="lang-box" title="Language"><i class="bi bi-translate"></i>
+    <select data-lang-select aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="mr">मराठी</option>
+        <option value="gu">ગુજરાતી</option>
+    </select>
+</label>
+{% endmacro %}

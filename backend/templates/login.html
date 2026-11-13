@@ -1,0 +1,70 @@
+{% extends "auth_layout.html" %}
+{% block title %}Login | Gajanan Kala Kendra{% endblock %}
+{% block brand %}
+    <h1 id="brandTitle">{% if login_as == 'admin' %}Admin <span>Portal.</span>{% else %}Welcome <span>Back.</span>{% endif %}</h1>
+    <p id="brandText">{% if login_as == 'admin' %}Sign in to manage products, stock, bookings, payments, customers and reports.{% else %}Login to continue your Ganpati journey, book your idol and track your order.{% endif %}</p>
+{% endblock %}
+{% block form %}
+    <h2 id="formTitle">{{ 'Admin Login' if login_as == 'admin' else 'Login' }}</h2>
+    <p class="subtitle" id="formSub">{{ 'Authorised shop staff only' if login_as == 'admin' else 'Enter your account details' }}</p>
+
+    <div class="role-tabs" id="roleTabs" role="tablist" aria-label="Login as">
+        <button type="button" role="tab" data-role="user" class="{{ 'on' if login_as != 'admin' }}"><i class="bi bi-person"></i> Login as User</button>
+        <button type="button" role="tab" data-role="admin" class="{{ 'on' if login_as == 'admin' }}"><i class="bi bi-shield-lock"></i> Login as Admin</button>
+    </div>
+
+    <form action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <input type="hidden" name="login_as" id="loginAs" value="{{ login_as }}">
+        <div class="form-group">
+            <label for="username">Username or Email</label>
+            <div class="input-box">
+                <i class="bi bi-person"></i>
+                <input id="username" name="username" type="text" placeholder="Enter username or email" required autofocus>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-box">
+                <i class="bi bi-lock"></i>
+                <input id="password" name="password" type="password" placeholder="Enter your password" required>
+            </div>
+        </div>
+        <div class="forgot-row" id="forgotRow" {% if login_as == 'admin' %}hidden{% endif %}><a href="{{ url_for('forgot_password') }}"><i class="bi bi-key"></i> Forgot Password?</a></div>
+        <div class="role-hint" id="adminHint" {% if login_as != 'admin' %}hidden{% endif %}><i class="bi bi-info-circle"></i> Admin password can be changed inside the panel. Forgot it? Run <code>python app.py reset-admin</code> on the server.</div>
+        <button class="auth-btn" type="submit" id="loginBtn">{{ 'Login as Admin' if login_as == 'admin' else 'Login as User' }} <i class="bi bi-arrow-right"></i></button>
+    </form>
+
+    <div class="switch-text" id="registerRow" {% if login_as == 'admin' %}hidden{% endif %}>Don't have an account? <a href="{{ url_for('register') }}">Register</a></div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+    var tabs = document.querySelectorAll('#roleTabs button');
+    var field = document.getElementById('loginAs');
+    var copy = {
+        user:  { brand: 'Welcome <span>Back.</span>',
+                 text: 'Login to continue your Ganpati journey, book your idol and track your order.',
+                 title: 'Login', sub: 'Enter your account details', btn: 'Login as User' },
+        admin: { brand: 'Admin <span>Portal.</span>',
+                 text: 'Sign in to manage products, stock, bookings, payments, customers and reports.',
+                 title: 'Admin Login', sub: 'Authorised shop staff only', btn: 'Login as Admin' }
+    };
+    function show(role) {
+        var c = copy[role];
+        field.value = role;
+        tabs.forEach(function (t) { t.classList.toggle('on', t.dataset.role === role); });
+        document.getElementById('brandTitle').innerHTML = c.brand;
+        document.getElementById('brandText').textContent = c.text;
+        document.getElementById('formTitle').textContent = c.title;
+        document.getElementById('formSub').textContent = c.sub;
+        document.getElementById('loginBtn').firstChild.textContent = c.btn + ' ';
+        document.getElementById('forgotRow').hidden = role === 'admin';
+        document.getElementById('registerRow').hidden = role === 'admin';
+        document.getElementById('adminHint').hidden = role !== 'admin';
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.role); }); });
+})();
+</script>
+{% endblock %}

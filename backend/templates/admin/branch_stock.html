@@ -1,0 +1,54 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Branch Stock{% endblock %}
+{% block crumb %}Branches{% endblock %}
+{% block heading %}Branch-wise Stock{% endblock %}
+
+{% block content %}
+<div class="ad-grid g4">
+    {% for t in totals %}
+    <a class="kpi {{ loop.cycle('', 'green', 'gold', 'dark') }}" href="{{ url_for('admin.branch_stock', branch=t['id']) }}">
+        <span class="ico"><i class="bi bi-shop-window"></i></span>
+        <div><small>{{ t['branch_name'] }}</small><strong>{{ t['units'] }}</strong><em>units in stock</em></div>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="ad-card">
+    <div class="ad-card-head"><h3><i class="bi bi-box-seam"></i> Stock by branch</h3></div>
+    <form class="ad-toolbar" method="GET" action="{{ url_for('admin.branch_stock') }}">
+        <div class="grow"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="Search product"></div>
+        <select name="branch" data-autosubmit>
+            <option value="">All branches</option>
+            {% for b in all_branches %}<option value="{{ b['id'] }}" {{ 'selected' if branch_id == b['id'] }}>{{ b['branch_name'] }}</option>{% endfor %}
+        </select>
+        <button class="btn-ghost" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    </form>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Branch</th><th>Product</th><th>Category</th><th class="num">Branch stock</th><th class="num">Shop total</th><th>Update</th></tr></thead>
+            <tbody>
+            {% for r in rows %}
+            <tr>
+                <td><strong>{{ r['branch_name'] }}</strong>{% if r['branch_status'] != 'Active' %} <span class="badge grey">Inactive</span>{% endif %}</td>
+                <td>{{ r['idol_name'] }}</td>
+                <td>{{ r['category'] }}</td>
+                <td class="num"><strong>{{ r['stock_count'] }}</strong></td>
+                <td class="num muted">{{ r['shop_stock'] }}</td>
+                <td>
+                    <form class="mini-form" action="{{ url_for('admin.branch_stock_update', stock_id=r['id']) }}" method="POST">
+                        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                        <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                        <input type="number" name="stock_count" min="0" value="{{ r['stock_count'] }}" required>
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr class="empty-row"><td colspan="6">No branch stock records found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pager-note">“Shop total” is the overall stock on the Stock page. Branch stock is how many units each branch holds; bookings that pick a branch reduce both numbers.</div>
+</div>
+{% endblock %}
